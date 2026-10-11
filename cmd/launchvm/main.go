@@ -14,6 +14,17 @@
 // The in-guest bring-up runs sandbox_init.sh, which launches the static Go
 // cmd/detonationd (cross-built into the shared assets mount by prepareassets) on
 // vsock:5000 — no python in the guest.
+//
+// Snapshot/restore (macOS 14+, same virtualization entitlement): with -snapshot
+// (default), launchvm captures a golden VM snapshot once the daemon is ready
+// after a cold boot, then fast-boots later launches by restoring it instead of
+// cold-booting the kernel and scripting the console. The golden is invalidated
+// automatically when any boot asset is newer than it. The loopback control
+// endpoint (-control) exposes GET /healthz and POST /reset, where /reset restores
+// the golden for a pristine, already-booted guest; -reset-each does that reset
+// before every detonation. If Apple's validateSaveRestoreSupport rejects this
+// configuration (or the save itself fails), launchvm logs it and runs exactly as
+// it did before, cold-booting with no snapshot.
 package main
 
 import (
@@ -30,8 +41,8 @@ import (
 	"time"
 
 	"github.com/Code-Hex/vz/v3"
-	"github.com/t0ul/ai-security-engineering/pkg/broker"
 	"github.com/t0ul/ai-security-engineering/internal/modelserve"
+	"github.com/t0ul/ai-security-engineering/pkg/broker"
 	"github.com/t0ul/ai-security-engineering/pkg/netpolicy"
 	"golang.org/x/term"
 )
@@ -42,6 +53,9 @@ func main() {
 	dir := flag.String("dir", "set-up/vm-assets", "MicroVM assets directory")
 	allow := flag.String("allow", "", "comma-separated egress allowlist for the in-VM broker (default: deny all)")
 	bridge := flag.String("bridge", "127.0.0.1:5000", "host address for the guest-vsock command bridge; change if :5000 is taken (macOS AirPlay Receiver owns it) and pass the matching -microvm to cmd/webapp")
+	snapshot := flag.Bool("snapshot", true, "save a golden VM snapshot after bring-up and fast-boot by restoring it (Apple Virtualization save/restore, macOS 14+)")
+	resetEach := flag.Bool("reset-each", false, "restore the golden snapshot before each detonation for a pristine guest per command (adds restore latency)")
+	control := flag.String("control", "127.0.0.1:5002", "loopback control endpoint for GET /healthz and POST /reset; empty to disable")
 	flag.Parse()
 
 	var allowHosts []string
@@ -109,10 +123,30 @@ func main() {
 	if valid, err := config.Validate(); !valid || err != nil {
 		log.Fatalf("launchvm: invalid vm config: %v", err)
 	}
+
+	// Decide up front whether this configuration can be snapshotted. The verdict
+	// is authoritative only on the running Mac: Apple's validator rejects some
+	// device sets (notably graphics devices, which this headless VM has none of),
+	// and a save can still fail at runtime even when the validator passes. Either
+	// way launchvm degrades to the plain cold-boot path.
+	snapshotPath := ""
+	savable := false
+	if *snapshot {
+		snapshotPath = filepath.Join(*dir, "golden.vmstate")
+		if ok, verr := config.ValidateSaveRestoreSupport(); ok && verr == nil {
+			savable = true
+		} else {
+			log.Printf("launchvm: snapshot/restore unsupported for this configuration (%v); continuing without snapshots", verr)
+			snapshotPath = ""
+		}
+	}
+
 	vm, err := vz.NewVirtualMachine(config)
 	if err != nil {
 		log.Fatalf("launchvm: instantiate: %v", err)
 	}
+
+	ch := &chamber{vm: vm, snapshot: snapshotPath, bridge: *bridge, savable: savable, reset: *resetEach}
 
 	oldState, err := term.MakeRaw(int(os.Stdin.Fd()))
 	if err != nil {
@@ -120,15 +154,50 @@ func main() {
 	}
 	defer term.Restore(int(os.Stdin.Fd()), oldState)
 
-	os.Stdout.Write([]byte("\r\nBooting PUI PUI Linux MicroVM...\r\n"))
-	if err := vm.Start(); err != nil {
-		term.Restore(int(os.Stdin.Fd()), oldState)
-		log.Fatalf("\r\nlaunchvm: start: %v\r\n", err)
+	assets := []string{kernelPath, initrdPath, filepath.Join(*dir, "alpine-root"), filepath.Join(*dir, "sandbox_init.sh")}
+	restored := false
+	if savable && snapshotUsable(snapshotPath, assets) {
+		os.Stdout.Write([]byte("\r\nRestoring PUI PUI Linux MicroVM from golden snapshot...\r\n"))
+		if rerr := ch.restoreBoot(); rerr != nil {
+			os.Stdout.Write([]byte("\rrestore failed (" + rerr.Error() + "); cold booting\r\n"))
+		} else {
+			restored = true
+		}
 	}
 
-	go startVsockBridge(vm, *bridge)
+	if restored {
+		// The restored guest is already past login with detonationd running, so
+		// the console only needs surfacing and stdin wiring — no login scripting.
+		go copyConsole(hostReader)
+		go io.Copy(vmWriter, os.Stdin)
+	} else {
+		os.Stdout.Write([]byte("\r\nBooting PUI PUI Linux MicroVM...\r\n"))
+		if err := vm.Start(); err != nil {
+			term.Restore(int(os.Stdin.Fd()), oldState)
+			log.Fatalf("\r\nlaunchvm: start: %v\r\n", err)
+		}
+		go driveConsole(hostReader, vmWriter)
+	}
+
+	go startVsockBridge(ch, *bridge)
 	go startEgressBroker(vm, egressPolicy)
-	go driveConsole(hostReader, vmWriter)
+	go ch.serveControl(*control)
+
+	// After a cold boot, capture the golden snapshot once the daemon answers so
+	// the next launch takes the restore fast path and /reset has a target.
+	if !restored && savable {
+		go func() {
+			if !probeReady(*bridge, 90*time.Second) {
+				os.Stdout.Write([]byte("\rdaemon not ready in time; skipping golden snapshot\r\n"))
+				return
+			}
+			if serr := ch.saveGolden(); serr != nil {
+				os.Stdout.Write([]byte("\rgolden snapshot not saved (" + serr.Error() + "); continuing without one\r\n"))
+				return
+			}
+			os.Stdout.Write([]byte("\rgolden snapshot saved: " + snapshotPath + "\r\n"))
+		}()
+	}
 
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
@@ -136,6 +205,24 @@ func main() {
 
 	os.Stdout.Write([]byte("\r\nTerminating MicroVM...\r\n"))
 	_, _ = vm.RequestStop()
+}
+
+// restoreBoot restores the golden snapshot into a freshly instantiated (stopped)
+// VM and resumes it, skipping the kernel cold boot and login scripting entirely.
+func (c *chamber) restoreBoot() error {
+	if err := c.vm.RestoreMachineStateFromURL(c.snapshot); err != nil {
+		return err
+	}
+	if err := waitState(c.vm, vz.VirtualMachineStatePaused, 15*time.Second); err != nil {
+		return err
+	}
+	return c.vm.Resume()
+}
+
+// copyConsole surfaces the guest console on stdout without scripting any input
+// (used on the restore path, where the guest is already at an interactive shell).
+func copyConsole(hostReader io.Reader) {
+	io.Copy(os.Stdout, hostReader)
 }
 
 // driveConsole watches the guest console and scripts the login + bring-up.
@@ -185,9 +272,9 @@ func driveConsole(hostReader io.Reader, vmWriter io.Writer) {
 const bringUpCmd = "mkdir -p /mnt/assets && mount -t virtiofs assets /mnt/assets && cp -a /mnt/assets/alpine-root /alpine && mkdir -p /alpine/mnt/assets && mount -o bind /mnt/assets /alpine/mnt/assets && mount -t proc none /alpine/proc && mount -t sysfs none /alpine/sys && mount -o bind /dev /alpine/dev && chroot /alpine /bin/sh /mnt/assets/sandbox_init.sh\n"
 
 // startVsockBridge accepts TCP on host loopback and pipes each connection to the
-// guest's vsock listener, exposing a plain 127.0.0.1:5000 endpoint backed by the
-// isolated MicroVM.
-func startVsockBridge(vm *vz.VirtualMachine, addr string) {
+// guest's vsock listener through the chamber (which applies -reset-each), exposing
+// a plain 127.0.0.1:5000 endpoint backed by the isolated MicroVM.
+func startVsockBridge(ch *chamber, addr string) {
 	// Reclaim the bridge port from any leftover launchvm so a re-run never binds a
 	// stale VM (same pattern as modeld's model ports). Only reclaim a loopback port
 	// — never kill whatever owns a non-local one.
@@ -207,7 +294,7 @@ func startVsockBridge(vm *vz.VirtualMachine, addr string) {
 		if err != nil {
 			continue
 		}
-		go bridgeConn(vm, tcpConn)
+		go ch.handleConn(tcpConn)
 	}
 }
 
@@ -216,16 +303,10 @@ func startVsockBridge(vm *vz.VirtualMachine, addr string) {
 // NO network device (egress-denied), so this host-side broker is its only path
 // out — and a single, audited, allow-listed one. Byte tunneling and policy live
 // in the broker package; this just wires the vz vsock listener to it.
+//
+// The listener is re-established if it drops (a snapshot restore tears down the
+// guest end of the vsock), so /reset and -reset-each keep a working egress path.
 func startEgressBroker(vm *vz.VirtualMachine, pol netpolicy.Policy) {
-	devices := vm.SocketDevices()
-	if len(devices) == 0 {
-		return
-	}
-	ln, err := devices[0].Listen(broker.DefaultPort)
-	if err != nil {
-		log.Printf("egress broker: listen vsock:%d: %v", broker.DefaultPort, err)
-		return
-	}
 	b := &broker.Broker{Policy: pol, Log: func(target string, allowed bool, reason string) {
 		if allowed {
 			os.Stdout.Write([]byte("\regress ALLOW " + target + "\r\n"))
@@ -233,23 +314,23 @@ func startEgressBroker(vm *vz.VirtualMachine, pol netpolicy.Policy) {
 			os.Stdout.Write([]byte("\regress DENY  " + target + " (" + reason + ")\r\n"))
 		}
 	}}
-	os.Stdout.Write([]byte("\r\negress broker up: guest vsock:5001 -> host netpolicy\r\n"))
-	_ = b.Serve(ln)
-}
-
-func bridgeConn(vm *vz.VirtualMachine, tcpConn net.Conn) {
-	defer tcpConn.Close()
-	devices := vm.SocketDevices()
-	if len(devices) == 0 {
-		return
+	announced := false
+	for {
+		devices := vm.SocketDevices()
+		if len(devices) == 0 {
+			time.Sleep(500 * time.Millisecond)
+			continue
+		}
+		ln, err := devices[0].Listen(broker.DefaultPort)
+		if err != nil {
+			time.Sleep(500 * time.Millisecond)
+			continue
+		}
+		if !announced {
+			os.Stdout.Write([]byte("\r\negress broker up: guest vsock:5001 -> host netpolicy\r\n"))
+			announced = true
+		}
+		_ = b.Serve(ln) // returns when the listener breaks (e.g. after a restore); re-listen below
+		time.Sleep(200 * time.Millisecond)
 	}
-	vsockConn, err := devices[0].Connect(vsockPort)
-	if err != nil {
-		return
-	}
-	defer vsockConn.Close()
-	done := make(chan struct{}, 2)
-	go func() { io.Copy(vsockConn, tcpConn); done <- struct{}{} }()
-	go func() { io.Copy(tcpConn, vsockConn); done <- struct{}{} }()
-	<-done
 }

@@ -25,6 +25,10 @@ set-up/vm-assets/agent_harness.sh
 set-up/vm-assets/vmlinuz-uncompressed
 set-up/vm-assets/vmlinuz-virt.gz 
 set-up/vm-assets/llama-3.2-3b.gguf
+set-up/vm-assets/nomic-embed-text-v1.5.gguf
+# VM saved-state snapshots (generated at runtime, large binary)
+*.vmstate
+set-up/vm-assets/golden.vmstate
 # Test binary, built with `go test -c`
 *.test
 
