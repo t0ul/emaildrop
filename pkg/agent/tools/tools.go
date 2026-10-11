@@ -11,9 +11,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/t0ul/ai-security-engineering/pkg/agent/dateparse"
-	"github.com/t0ul/ai-security-engineering/pkg/agent/extractor"
-	"github.com/t0ul/ai-security-engineering/pkg/agent/tool"
+	"github.com/t0ul/emaildrop/pkg/agent/dateparse"
+	"github.com/t0ul/emaildrop/pkg/agent/extractor"
+	"github.com/t0ul/emaildrop/pkg/agent/tool"
 	"github.com/t0ul/goflage"
 )
 

@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/t0ul/ai-security-engineering/pkg/netpolicy"
+	"github.com/t0ul/emaildrop/pkg/netpolicy"
 )
 
 // TestQuorumGatesEgressFetch locks the server wiring of A4/A5: when the quorum gate

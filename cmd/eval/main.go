@@ -13,7 +13,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/t0ul/ai-security-engineering/pkg/agent/eval"
+	"github.com/t0ul/emaildrop/pkg/agent/eval"
 )
 
 // defaultLabel is the 3.txt gate. The sample emails and labels live in the

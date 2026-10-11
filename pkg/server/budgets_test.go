@@ -3,7 +3,7 @@ package server
 import (
 	"testing"
 
-	"github.com/t0ul/ai-security-engineering/pkg/controlplane"
+	"github.com/t0ul/emaildrop/pkg/controlplane"
 )
 
 // TestConcurrencyBudgetEnforced locks F1: the governed MaxConcurrency budget is actually

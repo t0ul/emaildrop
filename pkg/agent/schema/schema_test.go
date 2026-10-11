@@ -3,7 +3,7 @@ package schema_test
 import (
 	"testing"
 
-	"github.com/t0ul/ai-security-engineering/pkg/agent/schema"
+	"github.com/t0ul/emaildrop/pkg/agent/schema"
 )
 
 func TestNeedsReview(t *testing.T) {

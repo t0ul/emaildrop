@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/t0ul/ai-security-engineering/internal/modelserve"
+	"github.com/t0ul/emaildrop/internal/modelserve"
 )
 
 func TestWaitHealthyBecomesReady(t *testing.T) {

@@ -41,9 +41,9 @@ import (
 	"time"
 
 	"github.com/Code-Hex/vz/v3"
-	"github.com/t0ul/ai-security-engineering/internal/modelserve"
-	"github.com/t0ul/ai-security-engineering/pkg/broker"
-	"github.com/t0ul/ai-security-engineering/pkg/netpolicy"
+	"github.com/t0ul/emaildrop/internal/modelserve"
+	"github.com/t0ul/emaildrop/pkg/broker"
+	"github.com/t0ul/emaildrop/pkg/netpolicy"
 	"golang.org/x/term"
 )
 

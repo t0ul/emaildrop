@@ -14,8 +14,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/t0ul/ai-security-engineering/pkg/agent/dateparse"
-	"github.com/t0ul/ai-security-engineering/pkg/agent/schema"
+	"github.com/t0ul/emaildrop/pkg/agent/dateparse"
+	"github.com/t0ul/emaildrop/pkg/agent/schema"
 )
 
 var nonAlnum = regexp.MustCompile(`[^a-z0-9]+`)

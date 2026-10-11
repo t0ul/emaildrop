@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/t0ul/ai-security-engineering/pkg/provenance"
+	"github.com/t0ul/emaildrop/pkg/provenance"
 )
 
 func TestSignedOutputVerifies(t *testing.T) {

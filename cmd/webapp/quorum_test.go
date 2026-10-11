@@ -3,8 +3,8 @@ package main
 import (
 	"testing"
 
-	"github.com/t0ul/ai-security-engineering/pkg/agent/a2a"
-	"github.com/t0ul/ai-security-engineering/pkg/agent/quorum"
+	"github.com/t0ul/emaildrop/pkg/agent/a2a"
+	"github.com/t0ul/emaildrop/pkg/agent/quorum"
 )
 
 // TestActionQuorumGate locks A4/A5: the egress action gate requires TWO distinct trusted

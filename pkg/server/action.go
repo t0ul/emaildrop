@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/t0ul/ai-security-engineering/pkg/agent/schema"
+	"github.com/t0ul/emaildrop/pkg/agent/schema"
 )
 
 // Fetcher performs an egress fetch for an action link. In production it is

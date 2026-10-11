@@ -4,7 +4,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/t0ul/ai-security-engineering/pkg/rag"
+	"github.com/t0ul/emaildrop/pkg/rag"
 )
 
 // TestOpenReadOnlyCannotWrite proves C4d: a read-only retrieval handle can query

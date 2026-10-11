@@ -15,9 +15,9 @@ import (
 	"strings"
 
 	"github.com/t0ul/ADD"
-	"github.com/t0ul/ai-security-engineering/pkg/agent/guard"
-	"github.com/t0ul/ai-security-engineering/pkg/agent/pipeline"
-	"github.com/t0ul/ai-security-engineering/pkg/controlplane"
+	"github.com/t0ul/emaildrop/pkg/agent/guard"
+	"github.com/t0ul/emaildrop/pkg/agent/pipeline"
+	"github.com/t0ul/emaildrop/pkg/controlplane"
 	"github.com/t0ul/goflage"
 	"github.com/t0ul/gorauder"
 )

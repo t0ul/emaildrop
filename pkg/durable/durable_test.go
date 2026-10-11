@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/t0ul/ai-security-engineering/pkg/durable"
+	"github.com/t0ul/emaildrop/pkg/durable"
 )
 
 // TestExactlyOnceOnSuccess: a repeated key returns the cached result and never

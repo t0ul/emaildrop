@@ -17,12 +17,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/t0ul/ai-security-engineering/pkg/broker"
-	"github.com/t0ul/ai-security-engineering/pkg/controlplane"
-	"github.com/t0ul/ai-security-engineering/pkg/datastore"
-	"github.com/t0ul/ai-security-engineering/pkg/mcp"
-	"github.com/t0ul/ai-security-engineering/pkg/netpolicy"
-	"github.com/t0ul/ai-security-engineering/pkg/sandbox"
+	"github.com/t0ul/emaildrop/pkg/broker"
+	"github.com/t0ul/emaildrop/pkg/controlplane"
+	"github.com/t0ul/emaildrop/pkg/datastore"
+	"github.com/t0ul/emaildrop/pkg/mcp"
+	"github.com/t0ul/emaildrop/pkg/netpolicy"
+	"github.com/t0ul/emaildrop/pkg/sandbox"
 	"github.com/t0ul/gledger"
 	"github.com/t0ul/gustoms"
 )

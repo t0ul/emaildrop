@@ -12,7 +12,7 @@ import (
 	"os"
 
 	"github.com/t0ul/ADD"
-	"github.com/t0ul/ai-security-engineering/pkg/redteam"
+	"github.com/t0ul/emaildrop/pkg/redteam"
 )
 
 func main() {

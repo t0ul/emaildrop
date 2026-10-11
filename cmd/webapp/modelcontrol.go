@@ -7,8 +7,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/t0ul/ai-security-engineering/internal/modelcatalog"
-	"github.com/t0ul/ai-security-engineering/internal/modelstack"
+	"github.com/t0ul/emaildrop/internal/modelcatalog"
+	"github.com/t0ul/emaildrop/internal/modelstack"
 )
 
 // modelController is the single owner of the local model stack's lifecycle (C3). Boot

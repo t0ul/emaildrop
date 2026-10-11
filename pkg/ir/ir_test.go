@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/t0ul/ai-security-engineering/pkg/ir"
+	"github.com/t0ul/emaildrop/pkg/ir"
 	"github.com/t0ul/gledger"
 )
 

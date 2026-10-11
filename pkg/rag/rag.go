@@ -17,7 +17,7 @@ import (
 	"strings"
 
 	"github.com/t0ul/GoRag"
-	"github.com/t0ul/ai-security-engineering/pkg/agent/guard"
+	"github.com/t0ul/emaildrop/pkg/agent/guard"
 	_ "modernc.org/sqlite"
 )
 

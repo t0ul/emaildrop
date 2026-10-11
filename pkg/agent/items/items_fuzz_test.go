@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/t0ul/ADD"
-	"github.com/t0ul/ai-security-engineering/pkg/agent/items"
+	"github.com/t0ul/emaildrop/pkg/agent/items"
 )
 
 // FuzzClassifyNoPanic hunts for an email body that panics or hangs the

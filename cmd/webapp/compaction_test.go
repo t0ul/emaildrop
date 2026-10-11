@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/t0ul/ai-security-engineering/pkg/compaction"
-	"github.com/t0ul/ai-security-engineering/pkg/gateway"
+	"github.com/t0ul/emaildrop/pkg/compaction"
+	"github.com/t0ul/emaildrop/pkg/gateway"
 )
 
 // TestCompactHistoryBudgets locks B1: a long chat history is collapsed into a running

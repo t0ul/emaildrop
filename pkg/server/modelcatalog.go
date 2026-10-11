@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"path/filepath"
 
-	"github.com/t0ul/ai-security-engineering/internal/assets"
-	"github.com/t0ul/ai-security-engineering/internal/modelcatalog"
+	"github.com/t0ul/emaildrop/internal/assets"
+	"github.com/t0ul/emaildrop/internal/modelcatalog"
 	"github.com/t0ul/gledger"
 )
 

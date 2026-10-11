@@ -3,7 +3,7 @@ package controlplane
 import (
 	"fmt"
 
-	"github.com/t0ul/ai-security-engineering/pkg/datastore"
+	"github.com/t0ul/emaildrop/pkg/datastore"
 	"github.com/t0ul/gledger"
 	"github.com/t0ul/goverlord"
 )

@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/t0ul/ai-security-engineering/pkg/controlplane"
-	"github.com/t0ul/ai-security-engineering/pkg/datastore"
+	"github.com/t0ul/emaildrop/pkg/controlplane"
+	"github.com/t0ul/emaildrop/pkg/datastore"
 )
 
 // liveSkills wires the real signed catalog to a real governed plane backed by a real

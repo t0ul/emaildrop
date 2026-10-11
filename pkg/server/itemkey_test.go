@@ -3,7 +3,7 @@ package server
 import (
 	"testing"
 
-	"github.com/t0ul/ai-security-engineering/pkg/agent/schema"
+	"github.com/t0ul/emaildrop/pkg/agent/schema"
 )
 
 // TestItemKeyIgnersKind locks the review fix: the status key matches the dedup identity

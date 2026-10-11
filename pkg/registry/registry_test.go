@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/t0ul/ai-security-engineering/pkg/registry"
+	"github.com/t0ul/emaildrop/pkg/registry"
 )
 
 func TestGatedPromotionToProd(t *testing.T) {

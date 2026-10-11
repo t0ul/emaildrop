@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/t0ul/ai-security-engineering/pkg/agent/guard"
-	"github.com/t0ul/ai-security-engineering/pkg/compaction"
+	"github.com/t0ul/emaildrop/pkg/agent/guard"
+	"github.com/t0ul/emaildrop/pkg/compaction"
 )
 
 // concat is a faithful stub summarizer: it includes every turn's text verbatim,

@@ -16,8 +16,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/t0ul/ai-security-engineering/pkg/broker"
-	"github.com/t0ul/ai-security-engineering/pkg/sandbox"
+	"github.com/t0ul/emaildrop/pkg/broker"
+	"github.com/t0ul/emaildrop/pkg/sandbox"
 )
 
 const maxBody = 64 * 1024

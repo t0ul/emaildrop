@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/t0ul/ai-security-engineering/pkg/controlplane"
+	"github.com/t0ul/emaildrop/pkg/controlplane"
 )
 
 // BudgetRow is one entry of the budgets tab (C9): a governed resource envelope.

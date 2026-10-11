@@ -26,7 +26,7 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/t0ul/ai-security-engineering/pkg/provenance"
+	"github.com/t0ul/emaildrop/pkg/provenance"
 )
 
 // Fail-closed load errors. Each is a distinct reason a skill was refused.

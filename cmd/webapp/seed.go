@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/t0ul/ai-security-engineering/pkg/datastore"
-	"github.com/t0ul/ai-security-engineering/pkg/rag"
+	"github.com/t0ul/emaildrop/pkg/datastore"
+	"github.com/t0ul/emaildrop/pkg/rag"
 	"github.com/t0ul/goflage"
 )
 

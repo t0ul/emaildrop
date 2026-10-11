@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/t0ul/ADD"
-	"github.com/t0ul/ai-security-engineering/pkg/redteam"
+	"github.com/t0ul/emaildrop/pkg/redteam"
 )
 
 // The ADD framework drives the invariant for every technique: the attack must

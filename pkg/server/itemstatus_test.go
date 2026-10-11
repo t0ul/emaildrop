@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/t0ul/ai-security-engineering/pkg/datastore"
+	"github.com/t0ul/emaildrop/pkg/datastore"
 )
 
 // memStatus is the real datastore overlay used as the ItemStatusStore. It converts the

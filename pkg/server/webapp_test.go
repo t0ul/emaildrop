@@ -13,14 +13,14 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/t0ul/ai-security-engineering/pkg/agent/ics"
-	"github.com/t0ul/ai-security-engineering/pkg/agent/pipeline"
-	"github.com/t0ul/ai-security-engineering/pkg/agent/schema"
-	"github.com/t0ul/ai-security-engineering/pkg/controlplane"
-	"github.com/t0ul/ai-security-engineering/pkg/domain"
-	"github.com/t0ul/ai-security-engineering/pkg/netpolicy"
-	"github.com/t0ul/ai-security-engineering/pkg/provenance"
-	"github.com/t0ul/ai-security-engineering/pkg/server"
+	"github.com/t0ul/emaildrop/pkg/agent/ics"
+	"github.com/t0ul/emaildrop/pkg/agent/pipeline"
+	"github.com/t0ul/emaildrop/pkg/agent/schema"
+	"github.com/t0ul/emaildrop/pkg/controlplane"
+	"github.com/t0ul/emaildrop/pkg/domain"
+	"github.com/t0ul/emaildrop/pkg/netpolicy"
+	"github.com/t0ul/emaildrop/pkg/provenance"
+	"github.com/t0ul/emaildrop/pkg/server"
 	"github.com/t0ul/gledger"
 )
 

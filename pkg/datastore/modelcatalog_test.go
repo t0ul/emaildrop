@@ -3,7 +3,7 @@ package datastore_test
 import (
 	"testing"
 
-	"github.com/t0ul/ai-security-engineering/internal/modelcatalog"
+	"github.com/t0ul/emaildrop/internal/modelcatalog"
 )
 
 // TestModelCatalogSeedIsIdempotent: the seed populates an empty table once, and a

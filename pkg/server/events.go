@@ -14,9 +14,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/t0ul/ai-security-engineering/pkg/agent/ics"
-	"github.com/t0ul/ai-security-engineering/pkg/agent/items"
-	"github.com/t0ul/ai-security-engineering/pkg/agent/schema"
+	"github.com/t0ul/emaildrop/pkg/agent/ics"
+	"github.com/t0ul/emaildrop/pkg/agent/items"
+	"github.com/t0ul/emaildrop/pkg/agent/schema"
 )
 
 var reSafeName = regexp.MustCompile(`[^a-zA-Z0-9._-]+`)

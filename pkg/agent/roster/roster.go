@@ -5,10 +5,10 @@
 package roster
 
 import (
-	"github.com/t0ul/ai-security-engineering/pkg/agent/extractor"
-	"github.com/t0ul/ai-security-engineering/pkg/agent/items"
-	"github.com/t0ul/ai-security-engineering/pkg/agent/tool"
-	"github.com/t0ul/ai-security-engineering/pkg/agent/tools"
+	"github.com/t0ul/emaildrop/pkg/agent/extractor"
+	"github.com/t0ul/emaildrop/pkg/agent/items"
+	"github.com/t0ul/emaildrop/pkg/agent/tool"
+	"github.com/t0ul/emaildrop/pkg/agent/tools"
 )
 
 // Register adds the default roster to r.

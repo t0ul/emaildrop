@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/t0ul/ai-security-engineering/pkg/domain"
+	"github.com/t0ul/emaildrop/pkg/domain"
 )
 
 // loadProfile reads the household profile from the governed store (empty if none).

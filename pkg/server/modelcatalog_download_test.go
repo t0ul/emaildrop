@@ -11,8 +11,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/t0ul/ai-security-engineering/internal/modelcatalog"
-	"github.com/t0ul/ai-security-engineering/pkg/datastore"
+	"github.com/t0ul/emaildrop/internal/modelcatalog"
+	"github.com/t0ul/emaildrop/pkg/datastore"
 )
 
 // TestModelCatalogDownload locks B5: the in-console download fetches a catalog entry's

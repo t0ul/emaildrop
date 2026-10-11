@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/t0ul/ai-security-engineering/pkg/rag"
+	"github.com/t0ul/emaildrop/pkg/rag"
 )
 
 // TestBudgetChunksBoundsContext locks the chat-context cap: a large doc is trimmed so the

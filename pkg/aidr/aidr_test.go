@@ -3,9 +3,9 @@ package aidr_test
 import (
 	"testing"
 
-	"github.com/t0ul/ai-security-engineering/pkg/aidr"
-	"github.com/t0ul/ai-security-engineering/pkg/controlplane"
-	"github.com/t0ul/ai-security-engineering/pkg/ir"
+	"github.com/t0ul/emaildrop/pkg/aidr"
+	"github.com/t0ul/emaildrop/pkg/controlplane"
+	"github.com/t0ul/emaildrop/pkg/ir"
 )
 
 func TestPolicyBlockEscalatesToBlockTools(t *testing.T) {

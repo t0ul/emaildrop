@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/t0ul/ai-security-engineering/pkg/hitl"
+	"github.com/t0ul/emaildrop/pkg/hitl"
 )
 
 func TestEvidenceFirstApproval(t *testing.T) {

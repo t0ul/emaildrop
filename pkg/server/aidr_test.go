@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/t0ul/ai-security-engineering/pkg/aidr"
-	"github.com/t0ul/ai-security-engineering/pkg/controlplane"
-	"github.com/t0ul/ai-security-engineering/pkg/ir"
-	"github.com/t0ul/ai-security-engineering/pkg/provenance"
+	"github.com/t0ul/emaildrop/pkg/aidr"
+	"github.com/t0ul/emaildrop/pkg/controlplane"
+	"github.com/t0ul/emaildrop/pkg/ir"
+	"github.com/t0ul/emaildrop/pkg/provenance"
 )
 
 // TestAIDRAutoContainsDenyStorm locks A7: a burst of capability denials (the App token

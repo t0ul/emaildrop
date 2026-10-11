@@ -16,7 +16,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/t0ul/ai-security-engineering/pkg/agent/schema"
+	"github.com/t0ul/emaildrop/pkg/agent/schema"
 )
 
 var (

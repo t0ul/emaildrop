@@ -16,7 +16,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/t0ul/ai-security-engineering/internal/modelcatalog"
+	"github.com/t0ul/emaildrop/internal/modelcatalog"
 	_ "modernc.org/sqlite"
 )
 

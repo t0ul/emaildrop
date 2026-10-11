@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/t0ul/ai-security-engineering/pkg/provenance"
+	"github.com/t0ul/emaildrop/pkg/provenance"
 )
 
 // TestAgentIdentityPersistence locks the G1 fix: the agent identity must NEVER degrade

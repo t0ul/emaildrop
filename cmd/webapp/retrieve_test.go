@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/t0ul/ai-security-engineering/pkg/rag"
+	"github.com/t0ul/emaildrop/pkg/rag"
 )
 
 // TestRetrieveDegradesLoudly locks G2: when semantic retrieval is requested but the

@@ -29,7 +29,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/t0ul/ai-security-engineering/pkg/netpolicy"
+	"github.com/t0ul/emaildrop/pkg/netpolicy"
 )
 
 // DefaultPort is the host vsock port the broker listens on for guest-initiated

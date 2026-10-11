@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/t0ul/ai-security-engineering/pkg/rag"
+	"github.com/t0ul/emaildrop/pkg/rag"
 )
 
 // fakeEmbed is a deterministic bag-of-words embedder over a tiny vocab, so

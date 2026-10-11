@@ -4,8 +4,8 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/t0ul/ai-security-engineering/pkg/dataset"
-	"github.com/t0ul/ai-security-engineering/pkg/provenance"
+	"github.com/t0ul/emaildrop/pkg/dataset"
+	"github.com/t0ul/emaildrop/pkg/provenance"
 )
 
 func TestSignedRecordTrusted(t *testing.T) {

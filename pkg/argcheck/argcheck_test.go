@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/t0ul/ai-security-engineering/pkg/argcheck"
+	"github.com/t0ul/emaildrop/pkg/argcheck"
 )
 
 var schema = argcheck.Schema{"query": argcheck.String, "limit": argcheck.Int}

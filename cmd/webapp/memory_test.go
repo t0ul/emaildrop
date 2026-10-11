@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/t0ul/ai-security-engineering/pkg/memory"
+	"github.com/t0ul/emaildrop/pkg/memory"
 )
 
 // TestMemoryCommands locks A3: the chat's durable memory is actually wired — a

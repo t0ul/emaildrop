@@ -7,11 +7,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/t0ul/ai-security-engineering/pkg/agent/extractor"
-	"github.com/t0ul/ai-security-engineering/pkg/agent/pipeline"
-	"github.com/t0ul/ai-security-engineering/pkg/agent/roster"
-	"github.com/t0ul/ai-security-engineering/pkg/agent/tool"
-	"github.com/t0ul/ai-security-engineering/pkg/provenance"
+	"github.com/t0ul/emaildrop/pkg/agent/extractor"
+	"github.com/t0ul/emaildrop/pkg/agent/pipeline"
+	"github.com/t0ul/emaildrop/pkg/agent/roster"
+	"github.com/t0ul/emaildrop/pkg/agent/tool"
+	"github.com/t0ul/emaildrop/pkg/provenance"
 	"github.com/t0ul/gledger"
 )
 

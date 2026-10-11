@@ -4,8 +4,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/t0ul/ai-security-engineering/internal/modelcatalog"
-	"github.com/t0ul/ai-security-engineering/pkg/datastore"
+	"github.com/t0ul/emaildrop/internal/modelcatalog"
+	"github.com/t0ul/emaildrop/pkg/datastore"
 )
 
 // TestModelCatalogKindRoundTrip locks B4 persistence: a catalog entry's Kind (chat vs
