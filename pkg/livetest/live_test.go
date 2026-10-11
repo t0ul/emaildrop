@@ -4,12 +4,13 @@
 // stack — the live counterpart to the offline suite. Build-tagged `live`, so the
 // default `go test ./...` never compiles it; run it with:
 //
-//	go test -tags live ./livetest/ -v
+//	go test -tags live ./pkg/livetest/ -v
 //
 // It boots the models + gouncer gateway once (TestMain), then exercises the live
 // eval F1 gate and a live prompt-injection ADD case through the actual extractor.
-// If the models aren't downloaded/startable, every test Skips with guidance
-// rather than failing (run `go run ./cmd/preflight`).
+// This suite is part of the gate (`make check`), not an optional extra: if the
+// models aren't downloaded or startable, every test FAILS with guidance (run
+// `go run ./cmd/preflight`). A test that skips is not testing anything.
 package livetest
 
 import (
@@ -51,7 +52,7 @@ func TestMain(m *testing.M) {
 func requireLive(t *testing.T) {
 	t.Helper()
 	if harness == nil {
-		t.Skip(startErr)
+		t.Fatalf("live models unavailable, and the live suite is part of the gate: %s", startErr)
 	}
 }
 
