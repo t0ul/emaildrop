@@ -23,7 +23,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/t0ul/ai-security-engineering/internal/assets"
+	"github.com/t0ul/emaildrop/internal/assets"
 )
 
 func main() {

@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/t0ul/ai-security-engineering/pkg/agent/guard"
+	"github.com/t0ul/emaildrop/pkg/agent/guard"
 )
 
 func TestSanitizeNeutralizesInjection(t *testing.T) {

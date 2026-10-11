@@ -10,10 +10,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/t0ul/ai-security-engineering/pkg/agent/extractor"
-	"github.com/t0ul/ai-security-engineering/pkg/agent/guard"
-	"github.com/t0ul/ai-security-engineering/pkg/agent/ics"
-	"github.com/t0ul/ai-security-engineering/pkg/agent/schema"
+	"github.com/t0ul/emaildrop/pkg/agent/extractor"
+	"github.com/t0ul/emaildrop/pkg/agent/guard"
+	"github.com/t0ul/emaildrop/pkg/agent/ics"
+	"github.com/t0ul/emaildrop/pkg/agent/schema"
 	"github.com/t0ul/goflage"
 )
 

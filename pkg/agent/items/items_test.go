@@ -4,9 +4,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/t0ul/ai-security-engineering/pkg/agent/items"
-	"github.com/t0ul/ai-security-engineering/pkg/agent/schema"
-	"github.com/t0ul/ai-security-engineering/pkg/agent/tool"
+	"github.com/t0ul/emaildrop/pkg/agent/items"
+	"github.com/t0ul/emaildrop/pkg/agent/schema"
+	"github.com/t0ul/emaildrop/pkg/agent/tool"
 )
 
 const sample = `PS 123 Weekly Update

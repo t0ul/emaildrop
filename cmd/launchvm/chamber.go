@@ -17,7 +17,7 @@ import (
 	"time"
 
 	"github.com/Code-Hex/vz/v3"
-	"github.com/t0ul/ai-security-engineering/internal/modelserve"
+	"github.com/t0ul/emaildrop/internal/modelserve"
 )
 
 // errNoSnapshot is returned by reset when save/restore is unavailable for this

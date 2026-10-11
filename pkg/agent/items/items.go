@@ -19,10 +19,10 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/t0ul/ai-security-engineering/pkg/agent/dateparse"
-	"github.com/t0ul/ai-security-engineering/pkg/agent/ics"
-	"github.com/t0ul/ai-security-engineering/pkg/agent/schema"
-	"github.com/t0ul/ai-security-engineering/pkg/agent/tool"
+	"github.com/t0ul/emaildrop/pkg/agent/dateparse"
+	"github.com/t0ul/emaildrop/pkg/agent/ics"
+	"github.com/t0ul/emaildrop/pkg/agent/schema"
+	"github.com/t0ul/emaildrop/pkg/agent/tool"
 )
 
 var (

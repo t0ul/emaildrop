@@ -7,10 +7,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/t0ul/ai-security-engineering/pkg/agent/extractor"
-	"github.com/t0ul/ai-security-engineering/pkg/agent/pipeline"
-	"github.com/t0ul/ai-security-engineering/pkg/agent/tool"
-	"github.com/t0ul/ai-security-engineering/pkg/agent/watcher"
+	"github.com/t0ul/emaildrop/pkg/agent/extractor"
+	"github.com/t0ul/emaildrop/pkg/agent/pipeline"
+	"github.com/t0ul/emaildrop/pkg/agent/tool"
+	"github.com/t0ul/emaildrop/pkg/agent/watcher"
 	"github.com/t0ul/gledger"
 )
 

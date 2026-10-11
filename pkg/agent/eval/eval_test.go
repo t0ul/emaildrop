@@ -4,8 +4,8 @@ import (
 	"math"
 	"testing"
 
-	"github.com/t0ul/ai-security-engineering/pkg/agent/eval"
-	"github.com/t0ul/ai-security-engineering/pkg/agent/schema"
+	"github.com/t0ul/emaildrop/pkg/agent/eval"
+	"github.com/t0ul/emaildrop/pkg/agent/schema"
 )
 
 func ev(title, start, end, loc string) schema.Event {

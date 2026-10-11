@@ -4,7 +4,7 @@
 // this interface and registering it — never editing the core loop.
 package tool
 
-import "github.com/t0ul/ai-security-engineering/pkg/agent/schema"
+import "github.com/t0ul/emaildrop/pkg/agent/schema"
 
 // Capability is the single privilege a tool declares (least privilege, M6).
 type Capability string

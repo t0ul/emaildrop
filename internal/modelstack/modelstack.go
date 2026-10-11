@@ -14,8 +14,8 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/t0ul/ai-security-engineering/internal/modelcatalog"
-	"github.com/t0ul/ai-security-engineering/internal/modelserve"
+	"github.com/t0ul/emaildrop/internal/modelcatalog"
+	"github.com/t0ul/emaildrop/internal/modelserve"
 	"github.com/t0ul/gouncer"
 )
 

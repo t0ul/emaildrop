@@ -4,10 +4,10 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/t0ul/ai-security-engineering/internal/modelcatalog"
-	"github.com/t0ul/ai-security-engineering/pkg/datastore"
-	"github.com/t0ul/ai-security-engineering/pkg/rag"
-	"github.com/t0ul/ai-security-engineering/pkg/server"
+	"github.com/t0ul/emaildrop/internal/modelcatalog"
+	"github.com/t0ul/emaildrop/pkg/datastore"
+	"github.com/t0ul/emaildrop/pkg/rag"
+	"github.com/t0ul/emaildrop/pkg/server"
 	"github.com/t0ul/gledger"
 )
 

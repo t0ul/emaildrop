@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/t0ul/ADD"
-	"github.com/t0ul/ai-security-engineering/pkg/agent/ensemble"
-	"github.com/t0ul/ai-security-engineering/pkg/agent/schema"
+	"github.com/t0ul/emaildrop/pkg/agent/ensemble"
+	"github.com/t0ul/emaildrop/pkg/agent/schema"
 )
 
 // FuzzReconcileRejectsHallucination hunts for a raw email where the reconciler

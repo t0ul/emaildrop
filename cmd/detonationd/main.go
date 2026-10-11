@@ -14,7 +14,7 @@ import (
 	"net"
 	"os"
 
-	"github.com/t0ul/ai-security-engineering/pkg/sandbox"
+	"github.com/t0ul/emaildrop/pkg/sandbox"
 )
 
 func main() {

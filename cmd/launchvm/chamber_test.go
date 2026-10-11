@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/t0ul/ai-security-engineering/pkg/sandbox"
+	"github.com/t0ul/emaildrop/pkg/sandbox"
 )
 
 // TestSnapshotUsable drives the golden-staleness guard against a real filesystem

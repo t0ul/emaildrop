@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/t0ul/ai-security-engineering/pkg/provenance"
+	"github.com/t0ul/emaildrop/pkg/provenance"
 )
 
 // Non-human identity (NHI) and capability-based authorization (C4a).

@@ -9,7 +9,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/t0ul/ai-security-engineering/pkg/provenance"
+	"github.com/t0ul/emaildrop/pkg/provenance"
 )
 
 // ErrForged is returned when a record presents a signature that does not verify.

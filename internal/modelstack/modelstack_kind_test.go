@@ -3,7 +3,7 @@ package modelstack
 import (
 	"testing"
 
-	"github.com/t0ul/ai-security-engineering/internal/modelcatalog"
+	"github.com/t0ul/emaildrop/internal/modelcatalog"
 )
 
 // TestChatModelsExcludesEmbedding locks the B4 split: a trained embedding model is NOT

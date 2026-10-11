@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/t0ul/ai-security-engineering/pkg/mcp"
+	"github.com/t0ul/emaildrop/pkg/mcp"
 	"github.com/t0ul/gustoms"
 )
 

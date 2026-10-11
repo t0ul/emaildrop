@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/t0ul/ai-security-engineering/pkg/broker"
-	"github.com/t0ul/ai-security-engineering/pkg/netpolicy"
+	"github.com/t0ul/emaildrop/pkg/broker"
+	"github.com/t0ul/emaildrop/pkg/netpolicy"
 )
 
 // startBroker runs a broker over TCP (standing in for vsock) and returns a

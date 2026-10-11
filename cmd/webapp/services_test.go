@@ -6,12 +6,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/t0ul/ai-security-engineering/pkg/controlplane"
-	"github.com/t0ul/ai-security-engineering/pkg/datastore"
-	"github.com/t0ul/ai-security-engineering/pkg/domain"
-	"github.com/t0ul/ai-security-engineering/pkg/gateway"
-	"github.com/t0ul/ai-security-engineering/pkg/provenance"
-	"github.com/t0ul/ai-security-engineering/pkg/rag"
+	"github.com/t0ul/emaildrop/pkg/controlplane"
+	"github.com/t0ul/emaildrop/pkg/datastore"
+	"github.com/t0ul/emaildrop/pkg/domain"
+	"github.com/t0ul/emaildrop/pkg/gateway"
+	"github.com/t0ul/emaildrop/pkg/provenance"
+	"github.com/t0ul/emaildrop/pkg/rag"
 )
 
 // These exercise the real typed services against a real SQLite datastore — no

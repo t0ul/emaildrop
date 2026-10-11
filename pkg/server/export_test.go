@@ -12,9 +12,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/t0ul/ai-security-engineering/pkg/agent/ics"
-	"github.com/t0ul/ai-security-engineering/pkg/agent/schema"
-	"github.com/t0ul/ai-security-engineering/pkg/datastore"
+	"github.com/t0ul/emaildrop/pkg/agent/ics"
+	"github.com/t0ul/emaildrop/pkg/agent/schema"
+	"github.com/t0ul/emaildrop/pkg/datastore"
 )
 
 // TestCalendarExportCombinesEventsAndReminders: the one-click export returns a single .ics

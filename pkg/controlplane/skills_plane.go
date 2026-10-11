@@ -5,7 +5,7 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/t0ul/ai-security-engineering/pkg/datastore"
+	"github.com/t0ul/emaildrop/pkg/datastore"
 	"github.com/t0ul/gledger"
 )
 

@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/t0ul/ai-security-engineering/pkg/datastore"
+	"github.com/t0ul/emaildrop/pkg/datastore"
 )
 
 // evalCaseAdapter wires *datastore.Store to the server interface (as cmd/webapp does).

@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/t0ul/ai-security-engineering/internal/assets"
+	"github.com/t0ul/emaildrop/internal/assets"
 )
 
 func TestCheckModelFormat(t *testing.T) {

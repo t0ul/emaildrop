@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/t0ul/ai-security-engineering/pkg/agent/a2a"
+	"github.com/t0ul/emaildrop/pkg/agent/a2a"
 )
 
 func TestSignedMessageVerifies(t *testing.T) {

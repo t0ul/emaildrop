@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/t0ul/ai-security-engineering/pkg/domain"
+	"github.com/t0ul/emaildrop/pkg/domain"
 )
 
 // ask answers a free-text question by lexical retrieval over the corpus. The

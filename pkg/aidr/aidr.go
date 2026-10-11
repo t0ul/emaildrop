@@ -9,8 +9,8 @@ package aidr
 import (
 	"strings"
 
-	"github.com/t0ul/ai-security-engineering/pkg/controlplane"
-	"github.com/t0ul/ai-security-engineering/pkg/ir"
+	"github.com/t0ul/emaildrop/pkg/controlplane"
+	"github.com/t0ul/emaildrop/pkg/ir"
 )
 
 // Rule maps a trace signal to the kill level it should trigger.

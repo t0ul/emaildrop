@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/t0ul/ai-security-engineering/pkg/netpolicy"
+	"github.com/t0ul/emaildrop/pkg/netpolicy"
 )
 
 // TestEnrichDegradesWhenSandboxDown locks F2: when the MicroVM fetcher is unreachable,

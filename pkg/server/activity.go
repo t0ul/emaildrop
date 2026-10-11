@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/t0ul/ai-security-engineering/pkg/ir"
+	"github.com/t0ul/emaildrop/pkg/ir"
 )
 
 // activity renders the audit log as a plain-language feed of what the agent did

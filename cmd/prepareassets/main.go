@@ -15,9 +15,9 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"github.com/t0ul/ai-security-engineering/internal/assets"
-	"github.com/t0ul/ai-security-engineering/internal/modelcatalog"
-	"github.com/t0ul/ai-security-engineering/pkg/datastore"
+	"github.com/t0ul/emaildrop/internal/assets"
+	"github.com/t0ul/emaildrop/internal/modelcatalog"
+	"github.com/t0ul/emaildrop/pkg/datastore"
 )
 
 // The MicroVM kernel/rootfs stay consts here — they are VM provisioning assets, not

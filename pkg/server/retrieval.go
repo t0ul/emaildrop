@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/t0ul/ai-security-engineering/pkg/controlplane"
+	"github.com/t0ul/emaildrop/pkg/controlplane"
 )
 
 // RetrievalRow is one entry of the retrieval governance tab: a corpus's governed

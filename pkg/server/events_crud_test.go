@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/t0ul/ai-security-engineering/pkg/datastore"
+	"github.com/t0ul/emaildrop/pkg/datastore"
 )
 
 // TestEventCreateAndDelete locks the household calendar CRUD: an operator can add an event

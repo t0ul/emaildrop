@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/t0ul/ai-security-engineering/pkg/rag"
+	"github.com/t0ul/emaildrop/pkg/rag"
 )
 
 func newStore(t *testing.T) *rag.Store {

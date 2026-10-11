@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/t0ul/ai-security-engineering/pkg/provenance"
+	"github.com/t0ul/emaildrop/pkg/provenance"
 )
 
 // newTestAuthority returns an Authority whose verifier trusts its signer, with a

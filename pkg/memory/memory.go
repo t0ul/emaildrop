@@ -11,7 +11,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/t0ul/ai-security-engineering/pkg/agent/guard"
+	"github.com/t0ul/emaildrop/pkg/agent/guard"
 )
 
 // Entry is one memory. Untrusted marks memory derived from attacker-influenced

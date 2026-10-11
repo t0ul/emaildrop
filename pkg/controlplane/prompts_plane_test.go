@@ -3,7 +3,7 @@ package controlplane
 import (
 	"testing"
 
-	"github.com/t0ul/ai-security-engineering/pkg/datastore"
+	"github.com/t0ul/emaildrop/pkg/datastore"
 )
 
 func TestGovernedPromptsPersist(t *testing.T) {

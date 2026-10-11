@@ -10,10 +10,10 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/t0ul/ai-security-engineering/internal/modelcatalog"
-	"github.com/t0ul/ai-security-engineering/internal/modelserve"
-	"github.com/t0ul/ai-security-engineering/pkg/rag"
-	"github.com/t0ul/ai-security-engineering/pkg/server"
+	"github.com/t0ul/emaildrop/internal/modelcatalog"
+	"github.com/t0ul/emaildrop/internal/modelserve"
+	"github.com/t0ul/emaildrop/pkg/rag"
+	"github.com/t0ul/emaildrop/pkg/server"
 )
 
 // embedManager owns a single, dedicated llama.cpp embeddings server (separate from

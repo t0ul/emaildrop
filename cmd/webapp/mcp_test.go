@@ -6,9 +6,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/t0ul/ai-security-engineering/pkg/controlplane"
-	"github.com/t0ul/ai-security-engineering/pkg/datastore"
-	"github.com/t0ul/ai-security-engineering/pkg/domain"
+	"github.com/t0ul/emaildrop/pkg/controlplane"
+	"github.com/t0ul/emaildrop/pkg/datastore"
+	"github.com/t0ul/emaildrop/pkg/domain"
 )
 
 // TestMCPRegisterApproveCallDelete exercises the operator tool-server registry end to end on

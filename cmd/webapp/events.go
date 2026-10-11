@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/t0ul/ai-security-engineering/pkg/datastore"
-	"github.com/t0ul/ai-security-engineering/pkg/server"
+	"github.com/t0ul/emaildrop/pkg/datastore"
+	"github.com/t0ul/emaildrop/pkg/server"
 )
 
 // eventProjection adapts the datastore events table to server.EventStore: it is the

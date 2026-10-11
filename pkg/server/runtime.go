@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/t0ul/ai-security-engineering/internal/assets"
+	"github.com/t0ul/emaildrop/internal/assets"
 )
 
 // RuntimeControl is the in-console start/stop of the local model stack (C3). Models

@@ -7,10 +7,10 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/t0ul/ai-security-engineering/pkg/controlplane"
-	"github.com/t0ul/ai-security-engineering/pkg/provenance"
-	"github.com/t0ul/ai-security-engineering/pkg/server"
-	"github.com/t0ul/ai-security-engineering/pkg/skills"
+	"github.com/t0ul/emaildrop/pkg/controlplane"
+	"github.com/t0ul/emaildrop/pkg/provenance"
+	"github.com/t0ul/emaildrop/pkg/server"
+	"github.com/t0ul/emaildrop/pkg/skills"
 )
 
 // SkillStore persists operator-authored skills (content only; the signature is re-derived

@@ -1,4 +1,4 @@
-module github.com/t0ul/ai-security-engineering
+module github.com/t0ul/emaildrop
 
 go 1.27.1
 
@@ -17,31 +17,17 @@ require (
 
 require (
 	github.com/Code-Hex/vz/v3 v3.8.0
-	github.com/t0ul/ADD v0.0.0-00010101000000-000000000000
-	github.com/t0ul/GoRag v0.0.0-00010101000000-000000000000
-	github.com/t0ul/gledger v0.0.0-00010101000000-000000000000
-	github.com/t0ul/goflage v0.0.0-00010101000000-000000000000
-	github.com/t0ul/gonductor v0.0.0-00010101000000-000000000000
-	github.com/t0ul/gorauder v0.0.0-00010101000000-000000000000
-	github.com/t0ul/gouncer v0.0.0-00010101000000-000000000000
-	github.com/t0ul/goverlord v0.0.0-00010101000000-000000000000
-	github.com/t0ul/gumpers v0.0.0
-	github.com/t0ul/gustoms v0.0.0-00010101000000-000000000000
+	github.com/t0ul/ADD v0.0.0-20261011220314-cc0309da3b1a
+	github.com/t0ul/GoRag v0.0.0-20261008195127-bc203f269e1c
+	github.com/t0ul/gledger v0.0.0-20261006144518-5ac38b514e64
+	github.com/t0ul/goflage v0.0.0-20261009135357-739ce25ed7e2
+	github.com/t0ul/gonductor v0.0.0-20261006173449-0ff2040c669a
+	github.com/t0ul/gorauder v0.0.0-20261011215148-7e0b43d5947e
+	github.com/t0ul/gouncer v0.0.0-20261006145250-6abb912f985c
+	github.com/t0ul/goverlord v0.0.0-20261006151751-a64efb655ae2
+	github.com/t0ul/gumpers v0.0.0-20261006154904-836570c2c66c
+	github.com/t0ul/gustoms v0.0.0-20261007182046-95bfdd23500c
 	golang.org/x/sys v0.48.0
 	golang.org/x/term v0.46.0
 	modernc.org/sqlite v1.60.1
 )
-
-replace (
-	github.com/t0ul/ADD => ../fleet/ADD
-	github.com/t0ul/gledger => ../fleet/gledger
-	github.com/t0ul/goflage => ../fleet/goflage
-	github.com/t0ul/gonductor => ../fleet/gonductor
-	github.com/t0ul/gorauder => ../fleet/gorauder
-	github.com/t0ul/gouncer => ../fleet/gouncer
-	github.com/t0ul/goverlord => ../fleet/goverlord
-	github.com/t0ul/gumpers => ../fleet/gumpers
-	github.com/t0ul/gustoms => ../fleet/gustoms
-)
-
-replace github.com/t0ul/GoRag => ../fleet/GoRag

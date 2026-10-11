@@ -3,8 +3,8 @@ package ensemble_test
 import (
 	"testing"
 
-	"github.com/t0ul/ai-security-engineering/pkg/agent/ensemble"
-	"github.com/t0ul/ai-security-engineering/pkg/agent/schema"
+	"github.com/t0ul/emaildrop/pkg/agent/ensemble"
+	"github.com/t0ul/emaildrop/pkg/agent/schema"
 )
 
 const raw = "PTA Update\nBook fair is on October 2.\nPTA meeting October 5.\n"

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/t0ul/ai-security-engineering/pkg/rag"
+	"github.com/t0ul/emaildrop/pkg/rag"
 )
 
 // TestIngestHandbooks locks D1: a *handbook*.txt in the seed dir is auto-ingested into

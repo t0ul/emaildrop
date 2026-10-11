@@ -18,8 +18,8 @@ import (
 	"runtime/debug"
 	"strings"
 
-	"github.com/t0ul/ai-security-engineering/pkg/agent/extractor"
-	"github.com/t0ul/ai-security-engineering/pkg/controlplane"
+	"github.com/t0ul/emaildrop/pkg/agent/extractor"
+	"github.com/t0ul/emaildrop/pkg/controlplane"
 )
 
 type module struct {

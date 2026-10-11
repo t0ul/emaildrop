@@ -8,9 +8,9 @@ import (
 	"sync"
 
 	"github.com/t0ul/GoRag"
-	"github.com/t0ul/ai-security-engineering/pkg/datastore"
-	"github.com/t0ul/ai-security-engineering/pkg/rag"
-	"github.com/t0ul/ai-security-engineering/pkg/server"
+	"github.com/t0ul/emaildrop/pkg/datastore"
+	"github.com/t0ul/emaildrop/pkg/rag"
+	"github.com/t0ul/emaildrop/pkg/server"
 	"github.com/t0ul/goflage"
 )
 

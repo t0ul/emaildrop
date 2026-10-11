@@ -24,9 +24,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/t0ul/ai-security-engineering/internal/modelserve"
-	"github.com/t0ul/ai-security-engineering/pkg/agent/eval"
-	"github.com/t0ul/ai-security-engineering/pkg/datastore"
+	"github.com/t0ul/emaildrop/internal/modelserve"
+	"github.com/t0ul/emaildrop/pkg/agent/eval"
+	"github.com/t0ul/emaildrop/pkg/datastore"
 	"github.com/t0ul/gouncer"
 )
 

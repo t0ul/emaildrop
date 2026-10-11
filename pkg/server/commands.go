@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/t0ul/ai-security-engineering/pkg/ir"
+	"github.com/t0ul/emaildrop/pkg/ir"
 )
 
 // commands renders the raw tool-call stream — the operator twin of the consumer Activity

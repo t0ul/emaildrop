@@ -4,8 +4,8 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/t0ul/ai-security-engineering/pkg/provenance"
-	"github.com/t0ul/ai-security-engineering/pkg/skills"
+	"github.com/t0ul/emaildrop/pkg/provenance"
+	"github.com/t0ul/emaildrop/pkg/skills"
 )
 
 // trustedLib builds a library around a real signer: it trusts the author key, pins

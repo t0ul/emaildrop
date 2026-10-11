@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/t0ul/ai-security-engineering/pkg/agent/tool"
-	"github.com/t0ul/ai-security-engineering/pkg/agent/tools"
+	"github.com/t0ul/emaildrop/pkg/agent/tool"
+	"github.com/t0ul/emaildrop/pkg/agent/tools"
 )
 
 const sample = `PS 123 Newsletter

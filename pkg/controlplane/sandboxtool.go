@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/t0ul/ai-security-engineering/pkg/argcheck"
-	"github.com/t0ul/ai-security-engineering/pkg/mcp"
+	"github.com/t0ul/emaildrop/pkg/argcheck"
+	"github.com/t0ul/emaildrop/pkg/mcp"
 )
 
 // SandboxExecTool exposes the egress-denied MicroVM detonation chamber as a
