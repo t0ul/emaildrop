@@ -261,7 +261,7 @@ func (r Report) String() string {
 			emptyDash(row.PredEnd), emptyDash(row.GoldEnd), row.EndOK, row.LocOK)
 	}
 	if r.Matched > 0 {
-		fmt.Fprintf(&b, "field accuracy — start %d/%d  end %d/%d  location %d/%d",
+		fmt.Fprintf(&b, "field accuracy: start %d/%d  end %d/%d  location %d/%d",
 			r.StartOK, r.Matched, r.EndOK, r.Matched, r.LocOK, r.Matched)
 	}
 	return b.String()
