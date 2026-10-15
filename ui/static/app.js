@@ -1054,6 +1054,31 @@ function renderDropResult(s,ms){
   out.innerHTML='<div class="mut" style="margin-bottom:6px">Extracted '+esc(counts)+' in '+Math.round(ms/1000)+'s'+(review.length?', '+review.length+' need your OK':'')+(contacts.length?', '+contacts.length+' contact(s)':'')+
     '. <a href="#" onclick="document.querySelector(\'nav button[data-tab=tasks]\').click();return false;">Open Tasks</a> · <a href="#" onclick="document.querySelector(\'nav button[data-tab=calendar]\').click();return false;">Open Calendar</a></div>'+rows;
 }
+// Progress screen: what the watcher is doing with a bulk drop into the inbox folder.
+// Polled every 3 s; the card and the nav badge show only while something is queued
+// or in flight, then the last results stay visible on the Add Data tab.
+let __progressSeen=0;
+async function loadProgress(){
+  const r=await fetch('/api/progress');if(!r.ok)return;const p=await r.json();
+  const card=$('#progressCard'),badge=$('#addBadge');if(!card)return;
+  const total=p.done+p.failed+p.pending+(p.current?1:0);
+  const finished=p.done+p.failed;
+  if(p.active){
+    card.style.display='';
+    $('#progressLine').textContent=(p.current?('now: '+p.current.file+' ('+p.current.seconds+'s)'):'')+(p.pending?(' · '+p.pending+' waiting'):'')+' · '+finished+' done';
+    $('#progressBar').style.width=(total?Math.round(100*finished/total):0)+'%';
+    if(badge){badge.textContent='●';badge.style.display='';badge.title=(p.pending+(p.current?1:0))+' processing';}
+  }else{
+    if(badge)badge.style.display='none';
+    if(finished>0){card.style.display='';$('#progressLine').textContent=finished+' processed since the app started'+(p.failed?(', '+p.failed+' failed'):'');$('#progressBar').style.width='100%';}
+    else card.style.display='none';
+  }
+  const rec=$('#progressRecent');
+  rec.innerHTML=(p.recent||[]).slice(0,12).map(x=>'<div class="ev"><div><b>'+esc(x.file)+'</b> <span class="mut">'+(x.error?'failed: '+esc(x.error):x.events+' event(s), '+x.artifacts+' file(s), '+x.seconds+'s')+'</span></div><div>'+(x.sidecar?'<button class="ghost" onclick="showDropResult('+jsarg(x.sidecar)+')">Show</button>':'')+'</div></div>').join('');
+  if(finished>__progressSeen){__progressSeen=finished;loadEvents();loadDeadlines();}
+}
+async function showDropResult(sidecar){const r=await fetch('/api/summary?file='+encodeURIComponent(sidecar));if(!r.ok)return;renderDropResult(await r.json(),0);}
+setInterval(loadProgress,3000);loadProgress();
 function when_(i){const iso=i.due||i.start||'';if(i.all_day||iso.length<=10)return iso.slice(0,10);return iso.slice(0,10)+' '+iso.slice(11,16)+(i.end?'–'+i.end.slice(11,16):'');}
 loadEvents();loadDeadlines();setView('month');
 

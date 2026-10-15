@@ -12,7 +12,7 @@
     <button data-tab="chat">💬 Chat</button>
     <div class="grp">You</div>
     <button data-tab="calendar" class="active">Calendar</button>
-    <button data-tab="adddata">Add Data</button>
+    <button data-tab="adddata">Add Data <span id="addBadge" class="mut" style="display:none"></span></button>
     <button data-tab="week">My Week</button>
     <button data-tab="tasks">Tasks</button>
     <button data-tab="directory">Directory</button>
@@ -78,6 +78,11 @@
         <div style="margin-top:8px"><textarea id="paste" rows="4" placeholder="paste email text…"></textarea></div>
         <div style="margin-top:8px"><button class="go" onclick="dropText()">Process email</button> <span id="dropmsg" class="mut"></span></div>
         <div id="dropResult" style="margin-top:10px"></div>
+      </div>
+      <div id="progressCard" class="card" style="display:none;margin-top:12px">
+        <strong>Processing</strong> <span id="progressLine" class="mut"></span>
+        <div style="background:#e2e8f0;border-radius:6px;height:8px;margin:8px 0;overflow:hidden"><div id="progressBar" style="background:#2563eb;height:8px;width:0%"></div></div>
+        <div id="progressRecent"></div>
       </div>
     </div>
   </section>
