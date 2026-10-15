@@ -59,7 +59,29 @@ func dayOf(e Event) string {
 // wins, then the one whose description adds context (a note that is more than the title),
 // then an all-day entry beats a timed one (a school event mis-stamped with a time like
 // 22:27 is noise), then the one carrying a reminder.
+// betterEvent picks the entry to keep when two describe the same event, then
+// fills what the winner lacks from the loser: the venue, the end time and the
+// source notes live in whichever file had them (the events .ics carries the
+// location, the items .ics the description), and merging must not lose either.
 func betterEvent(a, b Event) Event {
+	w, l := pickEvent(a, b), a
+	if w.File == a.File && w.Title == a.Title && w.Start == a.Start {
+		l = b
+	}
+	if w.Location == "" {
+		w.Location = l.Location
+	}
+	if w.End == "" && !w.AllDay {
+		w.End = l.End
+	}
+	if w.Notes == "" {
+		w.Notes = l.Notes
+	}
+	w.HasReminder = w.HasReminder || l.HasReminder
+	return w
+}
+
+func pickEvent(a, b Event) Event {
 	if sa, sb := titleScore(a), titleScore(b); sa != sb {
 		if sa > sb {
 			return a

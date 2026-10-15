@@ -1023,11 +1023,38 @@ dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('over');if
 $('#file').addEventListener('change',e=>{if(e.target.files[0])upload(e.target.files[0]);});
 async function upload(f){const fd=new FormData();fd.append('email',f);await postDrop(fd,f.name);}
 async function dropText(){const t=$('#paste').value;if(!t.trim())return;const fd=new FormData();fd.append('text',t);await postDrop(fd,'pasted email');$('#paste').value='';}
-async function postDrop(fd,label){$('#dropmsg').textContent='processing '+label+'…';
+async function postDrop(fd,label){$('#dropmsg').textContent='processing '+label+'…';const out=$('#dropResult');if(out)out.innerHTML='';
   const r=await fetch('/api/drop',{method:'POST',body:fd});
   if(!r.ok){$('#dropmsg').textContent='error: '+(await r.text());return;}
-  $('#dropmsg').textContent='queued — results appear shortly';
-  setTimeout(()=>{loadEvents();loadDeadlines();},2500);setTimeout(()=>{loadEvents();loadDeadlines();},5000);}
+  const d=await r.json().catch(()=>({}));
+  $('#dropmsg').textContent='queued, extracting…';
+  watchDrop(d.file||'');}
+// The agent processes a drop in the background (the model runs); poll for its summary
+// sidecar and show what came out, so a paste never ends on "queued" with no answer.
+async function watchDrop(file){
+  const out=$('#dropResult');const stem=file.replace(/\.[^.]+$/,'');
+  if(!stem){$('#dropmsg').textContent='queued (no file name returned); check Tasks in a moment';loadEvents();loadDeadlines();return;}
+  const sidecar=stem+'.summary.json';const started=Date.now();const max=180000;
+  const tick=async()=>{
+    const r=await fetch('/api/summary?file='+encodeURIComponent(sidecar));
+    if(r.ok){const s=await r.json();renderDropResult(s,Date.now()-started);$('#dropmsg').textContent='done';loadEvents();loadDeadlines();return;}
+    if(Date.now()-started>max){$('#dropmsg').textContent='still processing after 3 minutes; the model may be busy. Check Tasks and Calendar later.';return;}
+    $('#dropmsg').textContent='extracting… '+Math.round((Date.now()-started)/1000)+'s';
+    setTimeout(tick,2000);};
+  setTimeout(tick,1500);
+}
+function renderDropResult(s,ms){
+  const out=$('#dropResult');if(!out)return;
+  const items=s.items||[],review=s.needs_review||[],contacts=s.contacts||[];
+  const kinds={};items.forEach(i=>{const k=i.kind||'event';kinds[k]=(kinds[k]||0)+1;});
+  const counts=Object.keys(kinds).map(k=>kinds[k]+' '+k+(kinds[k]>1?'s':'')).join(', ')||'nothing';
+  const rows=items.map(i=>{const when=(i.due||i.start)?when_(i):'no date';
+    return '<div class="ev"><div><span class="kind">'+esc(i.kind||'event')+'</span> <b>'+esc(i.title||'')+'</b><br><span class="mut">'+esc(when)+(i.location?' · '+esc(i.location):'')+'</span>'+
+      ((i.warnings||[]).length?'<br><span class="warn" style="font-size:12px">'+esc(i.warnings.join(', '))+'</span>':'')+'</div></div>';}).join('');
+  out.innerHTML='<div class="mut" style="margin-bottom:6px">Extracted '+esc(counts)+' in '+Math.round(ms/1000)+'s'+(review.length?', '+review.length+' need your OK':'')+(contacts.length?', '+contacts.length+' contact(s)':'')+
+    '. <a href="#" onclick="document.querySelector(\'nav button[data-tab=tasks]\').click();return false;">Open Tasks</a> · <a href="#" onclick="document.querySelector(\'nav button[data-tab=calendar]\').click();return false;">Open Calendar</a></div>'+rows;
+}
+function when_(i){const iso=i.due||i.start||'';if(i.all_day||iso.length<=10)return iso.slice(0,10);return iso.slice(0,10)+' '+iso.slice(11,16)+(i.end?'–'+i.end.slice(11,16):'');}
 loadEvents();loadDeadlines();setView('month');
 
 async function runScorecard(){

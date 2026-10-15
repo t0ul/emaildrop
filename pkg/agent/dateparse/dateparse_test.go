@@ -111,3 +111,45 @@ func TestNoDate(t *testing.T) {
 		t.Error("expected nil when no date present")
 	}
 }
+
+// Numeric dates: building and community emails write "Date: 10/28", not "October 28".
+// They are accepted when a year is present or when the token is introduced the way a
+// date is (start of the phrase, after a label colon, after "on", or after a weekday), so
+// a fraction in prose ("1/2 hour") is still not a date.
+func TestParseDatePhraseNumeric(t *testing.T) {
+	cases := map[string]string{
+		"Date: 10/28":                 "2026-10-28",
+		"10/28":                       "2026-10-28",
+		"on 9/10/2026 at noon":        "2026-09-10",
+		"Friday 11/5 early dismissal": "2026-11-05",
+		"due 12/01/26":                "2026-12-01",
+	}
+	for in, want := range cases {
+		dp := ParseDatePhrase(in, 2026)
+		if dp == nil {
+			t.Errorf("ParseDatePhrase(%q) = nil, want %s", in, want)
+			continue
+		}
+		if got := dp.Date.Format("2006-01-02"); got != want {
+			t.Errorf("ParseDatePhrase(%q) = %s, want %s", in, got, want)
+		}
+	}
+	if dp := ParseDatePhrase("on 9/10/2026", 2026); dp == nil || dp.AssumedYear {
+		t.Errorf("an explicit year must not be reported as assumed: %+v", dp)
+	}
+	for _, in := range []string{"a 1/2 hour session", "scored 13/40", "grades 3/4 and 5", "call 555/1234", "the 0/28 case"} {
+		if dp := ParseDatePhrase(in, 2026); dp != nil {
+			t.Errorf("ParseDatePhrase(%q) = %s, want nil", in, dp.Date.Format("2006-01-02"))
+		}
+	}
+}
+
+func TestExtractDatetimeNumericWithTimes(t *testing.T) {
+	r := ExtractDatetime("Date: 10/28 Time: 5PM - 7PM", 2026)
+	if r == nil || r.AllDay || r.Start != "2026-10-28T17:00:00" || r.End != "2026-10-28T19:00:00" {
+		t.Fatalf("want 17:00 to 19:00 on 2026-10-28, got %+v", r)
+	}
+	if idx := MonthDayIndex("Date: 10/28"); idx == nil || idx[0] != 6 {
+		t.Fatalf("MonthDayIndex must find a numeric date, got %v", idx)
+	}
+}

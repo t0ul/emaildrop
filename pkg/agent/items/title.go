@@ -209,6 +209,9 @@ func capWords(s string, n int) string {
 	return strings.Join(words[:n], " ")
 }
 
+// CapitalizeFirst upper-cases the first letter of a title.
+func CapitalizeFirst(s string) string { return capitalizeFirst(s) }
+
 func capitalizeFirst(s string) string {
 	if s == "" {
 		return s

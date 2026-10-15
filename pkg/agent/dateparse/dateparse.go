@@ -42,6 +42,14 @@ var (
 	reWeekday  = regexp.MustCompile(`(?i)\b(` + weekdaysAlt + `)\b`)
 	reMonthDay = regexp.MustCompile(`(?i)\b(` + monthsAlt + `)\s+(\d{1,2})(?:st|nd|rd|th)?\b`)
 	reYear     = regexp.MustCompile(`\b(20\d{2})\b`)
+	// A numeric date, "10/28", "9/10/2026" or "12/01/26". Community and building emails
+	// write dates this way; school newsletters almost never do. Because "1/2 hour" and
+	// "scored 13/40" look the same, a numeric date counts only when it is introduced
+	// the way a date is: see numericDate.
+	reNumDate = regexp.MustCompile(`\b(\d{1,2})/(\d{1,2})(?:/(\d{4}|\d{2}))?\b`)
+	// What may stand right before a numeric date: nothing (start of the phrase), a
+	// label colon ("Date: 10/28"), "on", "by", "due", "until", or a weekday name.
+	reNumDateLead = regexp.MustCompile(`(?i)(?:^|:|\b(?:on|by|due|until|through|from|to|` + weekdaysAlt + `),?)\s*$`)
 	// A time token: hour, optional :minutes, optional am/pm. A token counts as a
 	// TIME only if it has minutes (a colon) or an am/pm marker, so bare integers
 	// ("Room 205", "Grades 2-5") are never mistaken for times.
@@ -132,22 +140,54 @@ func canonWeekday(s string) string {
 	return ""
 }
 
+// numericDate finds the first "M/D", "M/D/YYYY" or "M/D/YY" in text that is
+// introduced like a date (reNumDateLead) and has a possible month and day. It
+// returns the match offsets, the parts and whether a year was written.
+func numericDate(text string) (idx []int, month, day, year int, hasYear bool) {
+	for _, m := range reNumDate.FindAllStringSubmatchIndex(text, -1) {
+		if !reNumDateLead.MatchString(text[:m[0]]) {
+			continue
+		}
+		mo, _ := strconv.Atoi(text[m[2]:m[3]])
+		d, _ := strconv.Atoi(text[m[4]:m[5]])
+		if mo < 1 || mo > 12 || d < 1 || d > 31 {
+			continue
+		}
+		y, hy := 0, false
+		if m[6] >= 0 {
+			y, _ = strconv.Atoi(text[m[6]:m[7]])
+			if m[7]-m[6] == 2 {
+				y += 2000
+			}
+			hy = true
+		}
+		return m[0:2], mo, d, y, hy
+	}
+	return nil, 0, 0, 0, false
+}
+
 // ParseDatePhrase pulls month/day (+ optional stated weekday, optional explicit
 // year) from a phrase, returning the resolved date and an integrity flag, or nil
-// if no date is present (or the date is impossible, e.g. February 30).
+// if no date is present (or the date is impossible, e.g. February 30). A written
+// month ("October 28") wins; a numeric date ("10/28") is the fallback.
 func ParseDatePhrase(text string, defaultYear int) *DatePhrase {
-	md := reMonthDay.FindStringSubmatch(text)
-	if md == nil {
-		return nil
-	}
-	month := months[strings.ToLower(md[1])]
-	day, _ := strconv.Atoi(md[2])
-
+	var month, day int
 	year := defaultYear
 	assumedYear := true
-	if ym := reYear.FindStringSubmatch(text); ym != nil {
-		year, _ = strconv.Atoi(ym[1])
-		assumedYear = false
+	if md := reMonthDay.FindStringSubmatch(text); md != nil {
+		month = months[strings.ToLower(md[1])]
+		day, _ = strconv.Atoi(md[2])
+		if ym := reYear.FindStringSubmatch(text); ym != nil {
+			year, _ = strconv.Atoi(ym[1])
+			assumedYear = false
+		}
+	} else if idx, mo, d, y, hasYear := numericDate(text); idx != nil {
+		month, day = mo, d
+		if hasYear {
+			year, assumedYear = y, false
+		}
+	} else {
+		return nil
 	}
 
 	d := time.Date(year, time.Month(month), day, 0, 0, 0, 0, time.UTC)
@@ -209,10 +249,17 @@ func ExtractDatetime(phrase string, defaultYear int) *Result {
 	return res
 }
 
-// MonthDayIndex returns the [start,end] byte offsets of the first "Month Day"
-// phrase in s, or nil if none. Byte offsets land on rune boundaries, so slicing
-// s at them yields the same text Python's codepoint indices would.
-func MonthDayIndex(s string) []int { return reMonthDay.FindStringIndex(s) }
+// MonthDayIndex returns the [start,end] byte offsets of the first date in s, a
+// "Month Day" phrase or a numeric "M/D", or nil if none. Byte offsets land on
+// rune boundaries, so slicing s at them yields the same text Python's codepoint
+// indices would.
+func MonthDayIndex(s string) []int {
+	if idx := reMonthDay.FindStringIndex(s); idx != nil {
+		return idx
+	}
+	idx, _, _, _, _ := numericDate(s)
+	return idx
+}
 
 // WeekdayIndex returns the [start,end] byte offsets of the first weekday name, or nil.
 func WeekdayIndex(s string) []int { return reWeekday.FindStringIndex(s) }

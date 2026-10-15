@@ -120,3 +120,42 @@ func hasWarn(ws []string, substr string) bool {
 	}
 	return false
 }
+
+// A community invitation written as labeled fields: the date and the time sit on
+// separate lines ("Date: 10/28", "Time: 5PM - 7PM"), the venue is a "Where:" line and
+// the only title is in the "join us for ..." sentence above. Expected: one timed event
+// at the venue, not a dateless task.
+const labeledInvite = `Dear West Residents,
+
+We hope you can join us for a cozy and fun evening in The Glass House organized by The West events committee.
+
+Date: 10/28
+Time: 5PM - 7PM
+Where: The Glass House (In the Lobby)
+
+There will be snacks and drinks and face painting for the kids! We hope you can come and mingle with your neighbors while enjoying a refreshment.
+
+All details are on the flyer attached as well.
+
+Please RSVP to events@example-building.com if you think you will be able to join.
+`
+
+func TestExtractEventsLabeledFields(t *testing.T) {
+	events := extractor.ExtractEvents(labeledInvite, "invite", 2026)
+	if len(events) != 1 {
+		t.Fatalf("want exactly one event, got %d: %v", len(events), titles(events))
+	}
+	e := events[0]
+	if e.Start != "2026-10-28T17:00:00" || e.End != "2026-10-28T19:00:00" || e.AllDay {
+		t.Errorf("want 17:00 to 19:00 on 2026-10-28, got start=%q end=%q allDay=%v", e.Start, e.End, e.AllDay)
+	}
+	if !strings.Contains(e.Location, "Glass House") {
+		t.Errorf("want the Where: line as location, got %q", e.Location)
+	}
+	if !strings.Contains(strings.ToLower(e.Title), "evening in the glass house") {
+		t.Errorf("want the title from the 'join us for' sentence, got %q", e.Title)
+	}
+	if e.Confidence < 0.6 {
+		t.Errorf("a labeled date is a strong signal, got confidence %v", e.Confidence)
+	}
+}

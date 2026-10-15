@@ -28,6 +28,7 @@ import (
 	"github.com/t0ul/emaildrop/pkg/agent/ensemble"
 	"github.com/t0ul/emaildrop/pkg/agent/guard"
 	"github.com/t0ul/emaildrop/pkg/agent/ics"
+	"github.com/t0ul/emaildrop/pkg/agent/items"
 	"github.com/t0ul/emaildrop/pkg/agent/schema"
 	"github.com/t0ul/emaildrop/pkg/agent/tool"
 )
@@ -363,7 +364,32 @@ var (
 	reDayoffHdr  = regexp.MustCompile(`(?i)(days off|no school|half[\s-]?day|school closed|holiday)`)
 	reTrailer    = regexp.MustCompile(`^[\s\-\x{2013}\x{2014}:]*(.+)$`)
 	reClauseSep  = regexp.MustCompile(`\.\s`)
+	// Labeled-field emails ("Date: 10/28", "Time: 5PM - 7PM", "Where: the lobby"): the
+	// label is never the title, the time line belongs to the date line above it, and
+	// the Where: line is the venue whatever word it uses.
+	reFieldLabel = regexp.MustCompile(`(?i)^\s*(date|day|when|time|where|location|venue|place)\s*$`)
+	reTimeLabel  = regexp.MustCompile(`(?i)^\s*time\s*:`)
+	reWhereLabel = regexp.MustCompile(`(?i)^\s*(?:where|location|venue|place)\s*:\s*(.+?)\s*$`)
+	// A "Date:" line names nothing; items.InviteTitle finds the "join us for X" sentence.
 )
+
+// timeLineBelow returns the "Time: ..." line within two lines under idx, or a line
+// that states only times, so a labeled date can be paired with its time.
+func timeLineBelow(lines []string, idx int) string {
+	for _, j := range []int{idx + 1, idx + 2} {
+		if j >= len(lines) {
+			break
+		}
+		ln := lines[j]
+		if dateparse.MonthDayIndex(ln) != nil {
+			continue
+		}
+		if reTimeLabel.MatchString(ln) || (len(dateparse.ParseTimes(ln)) > 0 && wordCount(ln) <= 6) {
+			return ln
+		}
+	}
+	return ""
+}
 
 const bulletCut = " \t●○•*-–—"
 
@@ -376,8 +402,11 @@ func cleanTitle(t string) string {
 }
 
 func venueNear(lines []string, idx int) string {
-	for _, j := range []int{idx, idx + 1, idx + 2} {
+	for _, j := range []int{idx, idx + 1, idx + 2, idx + 3} {
 		if j >= 0 && j < len(lines) {
+			if m := reWhereLabel.FindStringSubmatch(lines[j]); m != nil {
+				return truncateRunes(m[1], 60)
+			}
 			low := strings.ToLower(lines[j])
 			for _, v := range venues {
 				if strings.Contains(low, v) {
@@ -397,7 +426,11 @@ func proposeCandidates(text string) ([]candidate, []string) {
 			continue
 		}
 		if m := reColon.FindStringSubmatch(line); m != nil && dateparse.MonthDayIndex(m[2]) != nil {
-			cands = append(cands, candidate{Title: cleanTitle(m[1]), Phrase: m[2], Strong: true, Line: line, Idx: i})
+			title := cleanTitle(m[1])
+			if reFieldLabel.MatchString(m[1]) {
+				title = items.CapitalizeFirst(cleanTitle(items.InviteTitle(lines, i))) // "Date: 10/28" names nothing; the sentence above does
+			}
+			cands = append(cands, candidate{Title: title, Phrase: m[2], Strong: title != "", Line: line, Idx: i})
 			continue
 		}
 		mark := -1
@@ -435,6 +468,14 @@ func ExtractEvents(text, source string, year int) []schema.Event {
 		dt := dateparse.ExtractDatetime(c.Phrase, year)
 		if dt == nil {
 			continue
+		}
+		if dt.AllDay {
+			// "Date: 10/28" with "Time: 5PM - 7PM" on the next line: read them together.
+			if tl := timeLineBelow(lines, c.Idx); tl != "" {
+				if dt2 := dateparse.ExtractDatetime(c.Phrase+" "+tl, year); dt2 != nil && !dt2.AllDay {
+					dt = dt2
+				}
+			}
 		}
 		k := dateKey(dt.Start)
 		g := groups[k]

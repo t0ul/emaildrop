@@ -247,3 +247,26 @@ func TestClassifyAttachesSourceDescription(t *testing.T) {
 		t.Errorf("PII must be scrubbed from the description, got %q", e.Notes)
 	}
 }
+
+// A labeled-field invitation ("Date: 10/28" with "Time:" below and "join us for X"
+// above) is an event named X at the stated time, not a dateless task.
+func TestClassifyLabeledInvitation(t *testing.T) {
+	email := "Dear West Residents,\n\nWe hope you can join us for a cozy and fun evening in The Glass House organized by The West events committee.\n\nDate: 10/28\nTime: 5PM - 7PM\nWhere: The Glass House (In the Lobby)\n\nPlease RSVP to events@example-building.com if you think you will be able to join.\n"
+	got := items.Classify(email, 2026)
+	var ev *schema.Event
+	for i := range got {
+		if got[i].ResolvedKind() == schema.KindEvent {
+			ev = &got[i]
+			break
+		}
+	}
+	if ev == nil {
+		t.Fatalf("want an event from the labeled invitation, got %+v", got)
+	}
+	if ev.Start != "2026-10-28T17:00:00" || ev.End != "2026-10-28T19:00:00" {
+		t.Errorf("want 17:00 to 19:00 on 2026-10-28, got start=%q end=%q", ev.Start, ev.End)
+	}
+	if !strings.Contains(strings.ToLower(ev.Title), "evening in the glass house") {
+		t.Errorf("want the 'join us for' title, got %q", ev.Title)
+	}
+}

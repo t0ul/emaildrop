@@ -207,6 +207,34 @@ func trimEnds(c string) string {
 // Potluck will be on Oct 23" vs "October 12th - Italian Heritage Day") and
 // stripping connector/weekday words. Returns "" for a bare date line
 // ("Thursday, October 1st at 10:08 AM"), so the caller falls back to the header.
+// Labeled-field invitations ("Date: 10/28", "Time: 5PM - 7PM", "Where: the lobby")
+// name nothing on the dated line itself; the name sits in the opening sentence,
+// "join us for X". reDateLabelLine spots the dated field line, reInvite the sentence.
+var (
+	reDateLabelLine = regexp.MustCompile(`(?i)^\s*(?:date|day|when)\s*:`)
+	reInvite        = regexp.MustCompile(`(?i)\b(?:join us for|invites? you to|you(?:'re| are) invited to|invitation to)\s+(.+?)(?:\s+(?:organized|hosted|presented|sponsored)\b|[.!,;]|$)`)
+)
+
+// IsDateLabelLine reports whether line is a "Date:"/"When:" field line.
+func IsDateLabelLine(line string) bool { return reDateLabelLine.MatchString(line) }
+
+// InviteTitle looks up to eight lines above idx for the "join us for X" sentence
+// and returns X, cleaned, or "" when there is none.
+func InviteTitle(lines []string, idx int) string {
+	for j := idx - 1; j >= 0 && j >= idx-8; j-- {
+		if m := reInvite.FindStringSubmatch(lines[j]); m != nil {
+			t := strings.TrimSpace(strings.Trim(m[1], " -:,"))
+			// "a cozy evening" -> "Cozy evening": a title, not a sentence fragment (the
+			// calendar projection culls lowercase fragments on purpose).
+			t = reLeadingArticle.ReplaceAllString(t, "")
+			return capitalizeFirst(t)
+		}
+	}
+	return ""
+}
+
+var reLeadingArticle = regexp.MustCompile(`(?i)^(?:a|an|the)\s+`)
+
 func eventTitleOrEmpty(s string) string {
 	before, after := s, ""
 	if idx := dateparse.MonthDayIndex(s); idx != nil {
@@ -275,8 +303,12 @@ var reClock = regexp.MustCompile(`(?i)\b\d{1,2}:\d{2}\s*(?:am|pm)?\b|\b\d{1,2}\s
 // timeDominant reports whether a line is essentially JUST a time or time range ("5:30pm
 // to 8:00pm") rather than its own event that happens to carry a time ("Safety Committee
 // Meeting at 8:45 AM"). Only a time-dominant line's time may be borrowed by a nearby date.
+var reTimeLabelLine = regexp.MustCompile(`(?i)^\s*time\s*:`)
+
+// timeDominant reports whether a line is about its clock times and nothing else:
+// "5:30-8:00 PM", or a labeled "Time: 5PM - 7PM" line.
 func timeDominant(line string) bool {
-	return !significant(reClock.ReplaceAllString(line, " "))
+	return reTimeLabelLine.MatchString(line) || !significant(reClock.ReplaceAllString(line, " "))
 }
 
 // eventContext gathers the source line for an event plus the detail that immediately
@@ -390,7 +422,9 @@ func Classify(email string, defaultYear int) []schema.Event {
 		// a section (sectionDate) and takes a title only from its OWN text, never a stale
 		// top-of-email header — otherwise a greeting/newsletter title would land on the date.
 		var title string
-		if dt.AllDay && nextBulletFollows(lines, bullet, i) {
+		if IsDateLabelLine(ln) {
+			title = Tidy(InviteTitle(lines, i)) // "Date: 10/28" names nothing; the sentence above does
+		} else if dt.AllDay && nextBulletFollows(lines, bullet, i) {
 			header = ""
 			title = Tidy(eventTitleOrEmpty(ln))
 		} else {
