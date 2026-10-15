@@ -238,7 +238,10 @@ func main() {
 		}
 	}
 
-	w := &watcher.Watcher{Pipe: pipe, Cfg: cfg}
+	progress := server.NewProgress() // the Add Data progress screen reads this
+	w := &watcher.Watcher{Pipe: pipe, Cfg: cfg, OnStart: progress.Begin, OnDone: func(h watcher.Handled) {
+		progress.End(h.Source, h.MovedTo, h.Events, len(h.Artifacts), h.Error)
+	}}
 	if err := w.EnsureDirs(); err != nil {
 		log.Fatalf("webapp: %v", err)
 	}
@@ -332,7 +335,6 @@ func main() {
 	aidrDetect := func(span, event string, fields map[string]any) {
 		aidrEngine.Observe(ir.Event{Service: "webapp", Span: span, Event: event, Fields: fields})
 	}
-
 
 	// Governed prompts (C2): the console lists/activates/rolls-back the system
 	// prompts the LLM planner/coder/extractor resolve at runtime. Activations are
@@ -709,7 +711,7 @@ func main() {
 			Flywheel: flywheelSvc, Chat: chatSvc, ChatHistory: chatHistorySvc,
 			Authz: authz, OperatorToken: opToken, AppToken: appToken, Audit: audit, Detect: aidrDetect,
 			MCP: mcpReg, Prompts: prompts, Policies: policies, Sampling: sampling, Budgets: budgets, Retrieval: retrieval, Grammars: grammars, Models: models,
-			Skills: skillsPlane, SkillCatalog: skillSupply, ModelCatalog: modelCatalogSvc, Events: eventsSvc, Summaries: summariesSvc, Items: itemsSvc, ItemStatus: itemStatusSvc, HiddenEvents: hiddenEvtSvc, Exported: exportedSvc, Frontier: frontierSvc, RAG: ragLabSvc,
+			Skills: skillsPlane, SkillCatalog: skillSupply, ModelCatalog: modelCatalogSvc, Events: eventsSvc, Summaries: summariesSvc, Items: itemsSvc, ItemStatus: itemStatusSvc, HiddenEvents: hiddenEvtSvc, Exported: exportedSvc, Frontier: frontierSvc, RAG: ragLabSvc, Progress: progress,
 			AssetsDir: *assetsDir, GatewayURL: *gwFlag, GatewayUp: func() bool { return gw != nil && gw.Up() }, IdentityEphemeral: !persistentID,
 			VMURL: *vmURL, VMUp: func() bool { return vmReachable(*vmURL) }, Runtime: runtimeCtl,
 			Eval:      evalSvc,

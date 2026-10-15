@@ -58,6 +58,11 @@ func NewConfig(drop string) Config {
 type Watcher struct {
 	Pipe *pipeline.Pipeline
 	Cfg  Config
+	// OnStart and OnDone, when set, are told about every file as it is picked up
+	// and as it finishes (the UI's progress screen). Both run on the watcher's
+	// goroutine and must return quickly.
+	OnStart func(name string)
+	OnDone  func(Handled)
 }
 
 // Handled is the per-file outcome of one scan pass.
@@ -131,6 +136,9 @@ func (w *Watcher) RunOnce() []Handled {
 	out := make([]Handled, 0, len(files))
 	for _, path := range files {
 		name := filepath.Base(path)
+		if w.OnStart != nil {
+			w.OnStart(name)
+		}
 		sum, err := w.Pipe.ProcessEmail(path)
 		if err != nil {
 			w.Pipe.Audit.Emit(gledger.NewTraceID(), "watcher", "process_error",
@@ -139,6 +147,9 @@ func (w *Watcher) RunOnce() []Handled {
 			h := Handled{Summary: pipeline.Summary{Source: name}, Error: err.Error()}
 			if mverr == nil {
 				h.MovedTo = filepath.Base(dest)
+			}
+			if w.OnDone != nil {
+				w.OnDone(h)
 			}
 			out = append(out, h)
 			continue
@@ -163,6 +174,9 @@ func (w *Watcher) RunOnce() []Handled {
 			"artifacts": len(sum.Artifacts),
 			"rejected":  sum.Rejected,
 		})
+		if w.OnDone != nil {
+			w.OnDone(h)
+		}
 		out = append(out, h)
 	}
 	return out

@@ -111,3 +111,22 @@ func TestMaxPerCycleCaps(t *testing.T) {
 		t.Errorf("expected 1 file left after capped cycle, got %v", ents)
 	}
 }
+
+// The progress hooks see every file: picked up, then finished with its outcome.
+func TestHooksReportEachFile(t *testing.T) {
+	t.Setenv("EXTRACT_MODE", "regex")
+	w, _, _ := newWatcher(t)
+	var started []string
+	var done []watcher.Handled
+	w.OnStart = func(name string) { started = append(started, name) }
+	w.OnDone = func(h watcher.Handled) { done = append(done, h) }
+	drop(t, w, "a.txt", email)
+	drop(t, w, "b.txt", email)
+	w.RunOnce()
+	if len(started) != 2 || started[0] != "a.txt" || started[1] != "b.txt" {
+		t.Fatalf("OnStart must see each file in order, got %v", started)
+	}
+	if len(done) != 2 || done[0].Source != "a.txt" || done[1].MovedTo == "" || done[1].Events < 2 {
+		t.Fatalf("OnDone must carry each file's outcome, got %+v", done)
+	}
+}

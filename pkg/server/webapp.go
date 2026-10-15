@@ -44,6 +44,8 @@ type Config struct {
 	AuditPath string // gledger log to read incidents from
 	OutboxDir string // accepted .ics artifacts to render + offer for download
 	InboxPath string // where the user drops .txt emails (shown in the UI)
+	// Progress, when set, is fed by the watcher's hooks and served at /api/progress.
+	Progress *Progress
 
 	// Egress is the action-link allowlist (deny-by-default). Fetch performs the
 	// vetted fetch — in production controlplane.SandboxFetchTool (in the MicroVM).
@@ -419,6 +421,7 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("/api/commands", op(s.commands))
 	mux.HandleFunc("/api/safety", op(s.safetyState))
 	mux.HandleFunc("/api/events", consumer(s.events))
+	mux.HandleFunc("/api/progress", consumer(s.progress))
 	mux.HandleFunc("/api/calendar.ics", consumer(s.calendarExport))                                                 // the whole calendar as .ics
 	mux.HandleFunc("POST /api/calendar/export", csrf(s.authz(controlplane.ActionWrite, "calendar", s.calendarExportNew)))       // only new, marks exported
 	mux.HandleFunc("POST /api/calendar/reset-exported", csrf(s.authz(controlplane.ActionWrite, "calendar", s.calendarResetExported)))
