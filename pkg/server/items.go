@@ -406,13 +406,31 @@ func (s *Server) itemStatus(w http.ResponseWriter, r *http.Request) {
 // delete overlay.
 type reviewItem struct {
 	schema.Event
-	File  string `json:"file"`
-	Index int    `json:"index"`
-	Key   string `json:"key"`
+	File   string `json:"file"`
+	Index  int    `json:"index"`
+	Key    string `json:"key"`
+	Status string `json:"status,omitempty"` // done (accepted) / dismissed (not real), from the item overlay
 }
 
-func (s *Server) review(w http.ResponseWriter, _ *http.Request) {
-	var out []reviewItem
+// review lists the flagged items the human has not handled yet. Accepting a row
+// records it done and "Not real" records it dismissed, under the same content key
+// the Tasks overlay uses, so a handled row does not come back on reload. ?all=1
+// lists every flagged item with its status.
+func (s *Server) review(w http.ResponseWriter, r *http.Request) {
+	showAll := r.URL.Query().Get("all") == "1"
+	var statuses map[string]ItemStatus
+	if s.ItemStatus != nil {
+		statuses, _ = s.ItemStatus.LoadItemStatuses()
+	}
+	handled := func(e schema.Event) ItemStatus {
+		if st, ok := statuses[itemKey(e)]; ok {
+			return st
+		}
+		tidy := e // the Tasks projection keys by the tidied title; honor a Done made there too
+		tidy.Title = items.TidyItem(e.Title)
+		return statuses[itemKey(tidy)]
+	}
+	out := []reviewItem{}
 	for _, ns := range s.loadSummaries() {
 		for _, nr := range ns.S.NeedsReview {
 			// NeedsReview items are a flagged subset of Items — find the matching index
@@ -424,7 +442,11 @@ func (s *Server) review(w http.ResponseWriter, _ *http.Request) {
 					break
 				}
 			}
-			out = append(out, reviewItem{Event: nr, File: ns.Name, Index: idx, Key: itemKey(nr)})
+			st := handled(nr)
+			if !showAll && (st.Status == "done" || st.Status == "dismissed") {
+				continue
+			}
+			out = append(out, reviewItem{Event: nr, File: ns.Name, Index: idx, Key: itemKey(nr), Status: st.Status})
 		}
 	}
 	writeJSON(w, map[string]any{"items": out})
@@ -506,6 +528,9 @@ func (s *Server) accept(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "no such item", http.StatusBadRequest)
 		return
 	}
+	// The review row is keyed by the item as extracted; remember that before the
+	// operator's edits change the title or day, so the ROW is what gets marked handled.
+	handledKey := itemKey(item)
 	// Human touch: apply the operator's edits BEFORE the confirm, so the HITL evidence
 	// and the written .ics both reflect what they actually chose. The edited item still
 	// passes through ics.Write's URL/field sanitizers.
@@ -519,7 +544,7 @@ func (s *Server) accept(w http.ResponseWriter, r *http.Request) {
 		summary, "when: "+itemWhen(item), "kind: "+item.ResolvedKind()) {
 		return
 	}
-	s.doAccept(w, req.File, item)
+	s.doAccept(w, req.File, item, handledKey)
 }
 
 // itemEdits is the set of fields an operator may override before accepting an extracted
@@ -567,7 +592,7 @@ func (e *itemEdits) apply(item *schema.Event) bool {
 	return changed
 }
 
-func (s *Server) doAccept(w http.ResponseWriter, file string, item schema.Event) {
+func (s *Server) doAccept(w http.ResponseWriter, file string, item schema.Event, handledKey string) {
 	text, _, err := ics.Write([]schema.Event{item}, "Accepted")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -582,6 +607,7 @@ func (s *Server) doAccept(w http.ResponseWriter, file string, item schema.Event)
 	if s.Flywheel != nil { // data-flywheel: an accept is ground-truth that this extraction was right
 		s.Flywheel.Record("accept", file, item.Title)
 	}
+	s.markHandled(handledKey, "done") // the review row is done; it must not come back on reload
 	writeJSON(w, map[string]any{"ok": true, "file": outName})
 }
 
@@ -604,7 +630,20 @@ func (s *Server) reject(w http.ResponseWriter, r *http.Request) {
 	if s.Flywheel != nil {
 		s.Flywheel.Record("reject", req.File, item.Title)
 	}
+	s.markHandled(itemKey(item), "dismissed") // "not real": the row leaves the queue for good
 	writeJSON(w, map[string]any{"ok": true})
+}
+
+// markHandled records a review decision in the item overlay (the same store and key
+// the Tasks tab uses), when one is configured. A failure to record is logged, not
+// fatal: the calendar write or the feedback signal already happened.
+func (s *Server) markHandled(key, status string) {
+	if s.ItemStatus == nil || key == "" {
+		return
+	}
+	if err := s.ItemStatus.SetItemStatus(key, status, ""); err != nil {
+		log.Printf("review: could not record %s for %q: %v", status, key, err)
+	}
 }
 
 // flywheel reports the accept/reject tallies AND the recent raw feedback examples, so
