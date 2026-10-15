@@ -107,3 +107,19 @@ func TestDedupPrefersDescription(t *testing.T) {
 		t.Errorf("dedup should keep the event WITH a description, got notes %q", got[0].Notes)
 	}
 }
+
+// The same event lands in two files: the events .ics with the venue, the items .ics
+// with the source notes. The merged entry must keep both, whichever wins the title.
+func TestDedupMergeKeepsVenueAndNotes(t *testing.T) {
+	in := []Event{
+		{Title: "Cozy and fun evening in The Glass House", Start: "2026-10-28 17:00", End: "2026-10-28 19:00", Location: "The Glass House (In the Lobby)", File: "x.events.ics", Kind: "event"},
+		{Title: "Cozy and fun evening in The Glass House", Start: "2026-10-28 17:00", End: "2026-10-28 19:00", Notes: "join us for a cozy evening", File: "x.items.ics", Kind: "event"},
+	}
+	out := dedupEvents(in)
+	if len(out) != 1 {
+		t.Fatalf("want one merged event, got %d", len(out))
+	}
+	if out[0].Location != "The Glass House (In the Lobby)" || out[0].Notes != "join us for a cozy evening" {
+		t.Fatalf("merge must keep the venue and the notes, got %+v", out[0])
+	}
+}

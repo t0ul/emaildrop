@@ -64,12 +64,24 @@ func Reconcile(regexItems, llmItems []schema.Event, rawText string, year int) []
 		idx[key(e)] = i
 	}
 
+	// A timed slot the deterministic arm already filled: the model's item at the
+	// same start (and end) is the same event under another name, not a second one.
+	slot := map[string]int{}
+	for i, e := range out {
+		if strings.Contains(e.Start, "T") {
+			slot[e.Start+"|"+e.End] = i
+		}
+	}
 	for _, le := range llmItems {
 		if d := dateKey(le); d != "" && !dates[d] {
 			continue // hallucinated date — not in the email; reject (M9)
 		}
 		if i, ok := idx[key(le)]; ok {
 			out[i].Confidence = 0.97 // both extractors agree
+			continue
+		}
+		if i, ok := slot[le.Start+"|"+le.End]; ok && strings.Contains(le.Start, "T") {
+			out[i].Confidence = 0.97 // same timed slot: agreement on the event, the regex title wins
 			continue
 		}
 		le.Confidence = 0.7 // LLM-only — keep, but flag for review

@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "source_email": "samples/8.txt",
+  "default_year": 2026,
+  "note": "A building-community invitation written as labeled fields (Date:/Time:/Where:) with a numeric date and no year. One timed event at the stated venue; the RSVP line is an action, not a calendar event.",
+  "events": [
+    {"title": "Evening in The Glass House", "start": "2026-10-28T17:00:00", "end": "2026-10-28T19:00:00", "all_day": false, "location": "The Glass House (In the Lobby)"}
+  ]
+}
