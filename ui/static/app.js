@@ -4,7 +4,14 @@
 (function(){const f=window.fetch.bind(window);window.fetch=(u,o)=>{o=o||{};const s=typeof u==='string'?u:(u&&u.url)||'';if(__CAP__&&(s.indexOf('/api/')===0||s.indexOf('/ics/')===0)){o.headers=Object.assign({},o.headers||{},{'Authorization':'Bearer '+__CAP__});}return f(u,o);};})();
 const $=s=>document.querySelector(s);
 const TABS=['chat','calendar','adddata','week','tasks','activity','directory','security','prompts','sampling','models','runtime','skills','retrieval','rag','grammar','policies','budgets','eval'];
-const esc=s=>{const d=document.createElement('div');d.textContent=s||'';return d.innerHTML;};
+// esc makes a value safe as HTML text AND inside a double- or single-quoted attribute
+// (textContent->innerHTML leaves quotes alone, which broke every attribute that carried one).
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+// jsarg quotes a value as a JavaScript string literal for an inline onclick="fn(...)" handler.
+// The HTML parser decodes entities BEFORE the JS parser runs, so esc() alone cannot protect a
+// JS string: a title like "Chancellor's Day" ended the literal and the click was a SyntaxError
+// (nothing sent, nothing saved). JSON-quote first, then entity-escape for the attribute.
+const jsarg=s=>esc(JSON.stringify(String(s==null?'':s)));
 const when=e=>e.all_day?((e.due||e.start)+' · all day'):((e.start||e.due)+(e.end?(' – '+e.end.slice(11)):''));
 // descLine renders an item's source-context description (the email words it came from),
 // so a cryptic title is understandable. Skipped when it just repeats the title.
@@ -164,14 +171,14 @@ async function loadMCP(){
   if(!s.length){c.innerHTML='<p class="mut">no servers</p>';return;}
   c.innerHTML=s.map(m=>{
     const ok=m.status==='pinned';
-    const act=(m.status==='rug-pull'||m.status==='unapproved')?(' <button class="ghost" onclick="approveMCP(\''+esc(m.name)+'\')">Approve</button>'):'';
+    const act=(m.status==='rug-pull'||m.status==='unapproved')?(' <button class="ghost" onclick="approveMCP('+jsarg(m.name)+')">Approve</button>'):'';
     const drift=(m.current&&m.current!==m.pinned)?(' → now '+esc(m.current)):'';
     const tag=m.registered?' <span class="kind">registered</span>':' <span class="kind">built-in</span>';
     const url=m.url?'<br><span class="mut">'+esc(m.url)+'</span>':'';
     // Invoke buttons only on an approved registered server.
     let invoke='';
-    if(m.registered&&ok){invoke='<div style="margin-top:4px">'+(m.tools||[]).map(t=>'<button class="ghost" onclick="invokeMCP(\''+esc(m.name)+'\',\''+esc(t)+'\',this)">▶ '+esc(t)+'</button>').join(' ')+'</div>';}
-    const del=m.registered?(' <button class="ghost" onclick="deleteMCP(\''+esc(m.name)+'\')">Delete</button>'):'';
+    if(m.registered&&ok){invoke='<div style="margin-top:4px">'+(m.tools||[]).map(t=>'<button class="ghost" onclick="invokeMCP('+jsarg(m.name)+','+jsarg(t)+',this)">▶ '+esc(t)+'</button>').join(' ')+'</div>';}
+    const del=m.registered?(' <button class="ghost" onclick="deleteMCP('+jsarg(m.name)+')">Delete</button>'):'';
     return '<div class="ev"><div style="width:100%"><b>'+esc(m.name)+'</b>'+tag+' <span class="pill '+(ok?'pass':'fail')+'">'+esc(m.status)+'</span>'+act+del+url+
       '<br><span class="mut">tools: '+esc((m.tools||[]).join(', ')||'—')+'</span>'+
       '<br><span class="mut">pin '+esc(m.pinned||'—')+drift+'</span>'+invoke+
@@ -197,7 +204,7 @@ async function invokeMCP(server,tool,btn){
 async function loadBundles(){
   const c=$('#bundleList');if(!c)return;const d=await getJSON('/api/bundles');const bs=d.bundles||[];
   if(!bs.length){c.innerHTML='<p class="mut">no snapshots yet</p>';return;}
-  c.innerHTML=bs.map(b=>'<div class="ev"><div><b>'+esc(b.label)+'</b> <span class="mut">'+esc(b.at)+'</span> <button class="ghost" onclick="applyBundle(\''+esc(b.label)+'\')">Roll back to this</button></div></div>').join('');
+  c.innerHTML=bs.map(b=>'<div class="ev"><div><b>'+esc(b.label)+'</b> <span class="mut">'+esc(b.at)+'</span> <button class="ghost" onclick="applyBundle('+jsarg(b.label)+')">Roll back to this</button></div></div>').join('');
 }
 async function saveBundle(){
   const l=$('#bundleLabel').value.trim();if(!l)return;
@@ -214,9 +221,9 @@ async function loadPrompts(){
     const governed=p.version>0;
     return '<div class="ev"><div><b>'+esc(p.name)+'</b> <span class="pill '+(governed?'pass':'')+'">v'+p.version+'</span> <span class="mut">'+esc(p.hash)+'</span>'+
       '<br><textarea id="pt_'+esc(p.name)+'" rows="5" style="width:100%;margin-top:6px">'+esc(p.text)+'</textarea>'+
-      '<div style="margin-top:6px"><button class="ghost" onclick="testPrompt(\''+esc(p.name)+'\')">Test (shadow eval)</button> '+
-      '<button class="go" onclick="activatePrompt(\''+esc(p.name)+'\')">Activate new version</button>'+
-      (governed?(' <button class="ghost" onclick="resetPrompt(\''+esc(p.name)+'\')">Reset to default</button>'):'')+
+      '<div style="margin-top:6px"><button class="ghost" onclick="testPrompt('+jsarg(p.name)+')">Test (shadow eval)</button> '+
+      '<button class="go" onclick="activatePrompt('+jsarg(p.name)+')">Activate new version</button>'+
+      (governed?(' <button class="ghost" onclick="resetPrompt('+jsarg(p.name)+')">Reset to default</button>'):'')+
       '<div id="pttest_'+esc(p.name)+'" class="mut" style="margin-top:4px"></div></div></div></div>';
   }).join('');
 }
@@ -233,8 +240,8 @@ async function loadSampling(){
       '<div style="margin-top:6px">temp <input id="st_'+esc(s.name)+'" type="number" step="0.1" value="'+(cf.temperature||0)+'" style="width:70px"> '+
       'max tokens <input id="sm_'+esc(s.name)+'" type="number" value="'+(cf.max_tokens||0)+'" style="width:90px"> '+
       'seed <input id="ss_'+esc(s.name)+'" type="number" value="'+(cf.seed||0)+'" style="width:90px"></div>'+
-      '<div style="margin-top:6px"><button class="go" onclick="activateSampling(\''+esc(s.name)+'\')">Activate</button>'+
-      (governed?(' <button class="ghost" onclick="resetSampling(\''+esc(s.name)+'\')">Reset to default</button>'):'')+'</div></div></div>';
+      '<div style="margin-top:6px"><button class="go" onclick="activateSampling('+jsarg(s.name)+')">Activate</button>'+
+      (governed?(' <button class="ghost" onclick="resetSampling('+jsarg(s.name)+')">Reset to default</button>'):'')+'</div></div></div>';
   }).join('');
 }
 async function activateSampling(name){
@@ -258,8 +265,8 @@ async function loadModels(){
   c.innerHTML=ms.map(m=>{const governed=m.version>0;
     return '<div class="ev"><div><b>'+esc(m.name)+'</b> <span class="pill '+(governed?'pass':'')+'">v'+m.version+'</span> <span class="mut">'+esc(m.hash)+'</span>'+
       '<div style="margin-top:6px">model <select id="md_'+esc(m.name)+'">'+modelOpts(m.model)+'</select></div>'+
-      '<div style="margin-top:6px"><button class="go" onclick="activateModel(\''+esc(m.name)+'\')">Bind</button>'+
-      (governed?(' <button class="ghost" onclick="resetModel(\''+esc(m.name)+'\')">Reset to default</button>'):'')+'</div></div></div>';
+      '<div style="margin-top:6px"><button class="go" onclick="activateModel('+jsarg(m.name)+')">Bind</button>'+
+      (governed?(' <button class="ghost" onclick="resetModel('+jsarg(m.name)+')">Reset to default</button>'):'')+'</div></div></div>';
   }).join('');
 }
 async function activateModel(name){await postJSON('/api/models/activate',{name:name,model:$('#md_'+name).value});loadModels();}
@@ -273,9 +280,9 @@ async function loadModelCatalog(){
     return '<div class="ev"><div><b>'+esc(m.name)+'</b> '+pin+kind+' <span class="mut">:'+m.port+' · ctx '+m.ctx+' · '+esc(m.host)+'</span>'+
       '<div class="mut" style="margin-top:4px">'+esc(m.file)+'</div>'+
       '<div class="mut" style="margin-top:2px;word-break:break-all">'+esc(m.url)+'</div>'+
-      '<div style="margin-top:6px"><button class="ghost" onclick="downloadModel(\''+esc(m.name)+'\',this)">Download</button> '+
-      '<button class="ghost" onclick="editModel(\''+esc(m.name)+'\')">Edit</button> '+
-      '<button class="ghost" onclick="delModel(\''+esc(m.name)+'\')">Delete</button>'+
+      '<div style="margin-top:6px"><button class="ghost" onclick="downloadModel('+jsarg(m.name)+',this)">Download</button> '+
+      '<button class="ghost" onclick="editModel('+jsarg(m.name)+')">Edit</button> '+
+      '<button class="ghost" onclick="delModel('+jsarg(m.name)+')">Delete</button>'+
       ' <span class="dlOut mut"></span></div></div></div>';
   }).join('');
 }
@@ -312,7 +319,7 @@ async function loadFrontier(){
     const key=f.key_ref?('key <code>'+esc(f.key_ref)+'</code> <span class="pill '+(f.key_set?'pass':'fail')+'">'+(f.key_set?'set':'unset')+'</span>'):'<span class="pill">no key</span>';
     return '<div class="ev"><div><b>'+esc(f.subject)+'</b> <span class="pill warn">frontier-bound</span> '+key+
       '<div class="mut" style="margin-top:2px;word-break:break-all">'+esc(f.endpoint)+'</div></div>'+
-      '<div><button class="ghost" onclick="delFrontier(\''+esc(f.subject)+'\')">Delete</button></div></div>';
+      '<div><button class="ghost" onclick="delFrontier('+jsarg(f.subject)+')">Delete</button></div></div>';
   }).join('');
 }
 async function saveFrontier(){
@@ -393,10 +400,10 @@ async function loadSkills(){
     const active=(s.approved&&s.signer_trusted)?' <span class="pill pass">shaping Chat</span>':'';
     const tag=s.authored?' <span class="kind">authored</span>':'';
     let act;
-    if(s.approved) act='<button class="ghost" onclick="revokeSkill(\''+esc(s.name)+'\')">Revoke approval</button>';
-    else if(s.signer_trusted) act='<button class="go" onclick="approveSkill(\''+esc(s.name)+'\')">Approve this version</button>';
+    if(s.approved) act='<button class="ghost" onclick="revokeSkill('+jsarg(s.name)+')">Revoke approval</button>';
+    else if(s.signer_trusted) act='<button class="go" onclick="approveSkill('+jsarg(s.name)+')">Approve this version</button>';
     else act='<span class="mut">cannot approve — untrusted signer</span>';
-    if(s.authored) act+=' <button class="ghost" onclick="deleteSkill(\''+esc(s.name)+'\')">Delete</button>';
+    if(s.authored) act+=' <button class="ghost" onclick="deleteSkill('+jsarg(s.name)+')">Delete</button>';
     return '<div class="ev"><div><b>'+esc(s.name)+'</b> <span class="mut">v'+s.version+' · '+esc(s.hash)+'</span>'+tag+
       '<div style="margin-top:4px">'+trust+' '+appr+active+'</div>'+
       '<div style="margin-top:6px">'+act+'</div></div></div>';
@@ -428,8 +435,8 @@ async function loadRetrieval(){
     return '<div class="ev"><div><b>'+esc(s.name)+'</b> <span class="pill '+(governed?'pass':'')+'">v'+s.version+'</span> <span class="mut">'+esc(s.hash)+'</span>'+
       '<div style="margin-top:6px">top-k <input id="rk_'+esc(s.name)+'" type="number" value="'+(cf.k||0)+'" style="width:80px"> '+
       'context tokens <input id="rc_'+esc(s.name)+'" type="number" value="'+(cf.context_tokens||0)+'" style="width:100px"> <span class="mut">0 = auto (≈window/3)</span></div>'+
-      '<div style="margin-top:6px"><button class="go" onclick="activateRetrieval(\''+esc(s.name)+'\')">Activate</button>'+
-      (governed?(' <button class="ghost" onclick="resetRetrieval(\''+esc(s.name)+'\')">Reset to default</button>'):'')+'</div></div></div>';
+      '<div style="margin-top:6px"><button class="go" onclick="activateRetrieval('+jsarg(s.name)+')">Activate</button>'+
+      (governed?(' <button class="ghost" onclick="resetRetrieval('+jsarg(s.name)+')">Reset to default</button>'):'')+'</div></div></div>';
   }).join('');
 }
 async function activateRetrieval(name){await postJSON('/api/retrieval/activate',{name:name,config:{k:parseInt($('#rk_'+name).value)||0,context_tokens:parseInt($('#rc_'+name).value)||0}});loadRetrieval();}
@@ -440,8 +447,8 @@ async function loadGrammar(){
   c.innerHTML=gs.map(g=>{const governed=g.version>0;
     return '<div class="ev"><div><b>'+esc(g.name)+'</b> <span class="pill '+(governed?'pass':'')+'">v'+g.version+'</span> <span class="mut">'+esc(g.hash)+'</span>'+
       '<div style="margin-top:6px"><textarea id="gt_'+esc(g.name)+'" rows="5" style="width:100%;font-family:monospace;font-size:12px">'+esc(g.text)+'</textarea></div>'+
-      '<div style="margin-top:6px"><button class="go" onclick="activateGrammar(\''+esc(g.name)+'\')">Activate</button>'+
-      (governed?(' <button class="ghost" onclick="resetGrammar(\''+esc(g.name)+'\')">Reset to default</button>'):'')+'</div></div></div>';
+      '<div style="margin-top:6px"><button class="go" onclick="activateGrammar('+jsarg(g.name)+')">Activate</button>'+
+      (governed?(' <button class="ghost" onclick="resetGrammar('+jsarg(g.name)+')">Reset to default</button>'):'')+'</div></div></div>';
   }).join('');
 }
 async function activateGrammar(name){await postJSON('/api/grammar/activate',{name:name,text:$('#gt_'+name).value});loadGrammar();}
@@ -458,8 +465,8 @@ async function loadBudgets(){
       '<div style="margin-top:6px">max tokens <input id="bt_'+esc(b.name)+'" type="number" value="'+(cf.max_tokens||0)+'" style="width:90px"> '+
       'spend $ <input id="bs_'+esc(b.name)+'" type="number" step="0.01" value="'+(cf.spend_cap_usd||0)+'" style="width:90px"> '+
       '<span class="pill" title="enforced by the gouncer gateway on model calls, not by this console">gateway-side</span></div>'+
-      '<div style="margin-top:6px"><button class="go" onclick="activateBudget(\''+esc(b.name)+'\',\''+esc(cf.key_ref||'')+'\')">Activate</button>'+
-      (governed?(' <button class="ghost" onclick="resetBudget(\''+esc(b.name)+'\')">Reset to default</button>'):'')+'</div></div></div>';
+      '<div style="margin-top:6px"><button class="go" onclick="activateBudget('+jsarg(b.name)+','+jsarg(cf.key_ref||'')+')">Activate</button>'+
+      (governed?(' <button class="ghost" onclick="resetBudget('+jsarg(b.name)+')">Reset to default</button>'):'')+'</div></div></div>';
   }).join('');
 }
 async function activateBudget(name,keyRef){
@@ -474,8 +481,8 @@ async function loadPolicies(){
     const governed=p.version>0;
     return '<div class="ev"><div><b>'+esc(p.name)+'</b> <span class="pill '+(governed?'pass':'')+'">v'+p.version+'</span> <span class="mut">'+esc(p.hash)+' · '+(p.items||[]).length+' entries</span>'+
       '<br><textarea id="pol_'+esc(p.name)+'" rows="5" style="width:100%;margin-top:6px" placeholder="one entry per line">'+esc((p.items||[]).join('\n'))+'</textarea>'+
-      '<div style="margin-top:6px"><button class="go" onclick="activatePolicy(\''+esc(p.name)+'\')">Activate new version</button>'+
-      (governed?(' <button class="ghost" onclick="resetPolicy(\''+esc(p.name)+'\')">Reset to default</button>'):'')+'</div></div></div>';
+      '<div style="margin-top:6px"><button class="go" onclick="activatePolicy('+jsarg(p.name)+')">Activate new version</button>'+
+      (governed?(' <button class="ghost" onclick="resetPolicy('+jsarg(p.name)+')">Reset to default</button>'):'')+'</div></div></div>';
   }).join('');
 }
 async function activatePolicy(name){
@@ -494,7 +501,7 @@ async function loadWeekStrip(start){
   c.innerHTML=days.map(x=>{
     const cnt=x.count?('<span class="cnt">'+x.count+'</span>'):'<span class="mut">–</span>';
     const todayTag=x.today?' · today':'';
-    return '<div class="chip day" data-date="'+esc(x.date)+'" onclick="selectDay(\''+esc(x.date)+'\',this)">'+
+    return '<div class="chip day" data-date="'+esc(x.date)+'" onclick="selectDay('+jsarg(x.date)+',this)">'+
       '<b>'+esc(x.weekday)+'</b><span class="mut">'+esc(x.date.slice(5))+todayTag+'</span>'+cnt+'</div>';
   }).join('');
   const sel=days.find(x=>x.today)||days[0];
@@ -583,7 +590,7 @@ async function loadFlywheel(){
     h+='<div style="margin-top:8px">';
     rec.slice(0,12).forEach(f=>{const ic=f.decision==='accept'?'👍':(f.decision==='reject'?'👎':'😐');
       const lab=(f.label||'').slice(0,90);
-      const promote=f.decision==='reject'?' <button class="ghost" title="make this a durable regression case" onclick="promoteCase(\''+esc(f.source)+'\',\''+esc(lab)+'\')">Promote to eval case</button>':'';
+      const promote=f.decision==='reject'?' <button class="ghost" title="make this a durable regression case" onclick="promoteCase('+jsarg(f.source)+','+jsarg(lab)+')">Promote to eval case</button>':'';
       h+='<div class="ev" style="padding:6px 0"><div><span class="kind">'+esc(f.source)+'</span> '+ic+' <span class="mut">'+esc(lab)+'</span></div><div>'+promote+'</div></div>';});
     h+='</div>';
   }
@@ -648,7 +655,7 @@ async function loadEvents(){
   const evs=(d.events||[]).filter(e=>(e.kind||'event')==='event');
   if(!evs.length){c.innerHTML='<p class="mut">no meetings yet — add one above or drop an email in Add Data</p>';return;}
   evs.forEach(e=>{const div=document.createElement('div');div.className='ev';
-    const del=e.key?' <button class="ghost" title="remove from calendar" onclick="deleteEvent(\''+esc(e.key)+'\',this)">Delete</button>':'';
+    const del=e.key?' <button class="ghost" title="remove from calendar" onclick="deleteEvent('+jsarg(e.key)+',this)">Delete</button>':'';
     div.innerHTML='<div style="min-width:0"><b>'+esc(e.title)+'</b>'+(e.signed?' <span class="kind" title="signed by this agent, unaltered">✓ signed</span>':'')+'<br><span class="mut">'+esc(when(e))+(e.location?(' · '+esc(e.location)):'')+'</span>'+descLine(e)+'</div>'+
       '<div>'+(e.has_reminder?'<span class="bell">🔔</span>':'')+'<a class="go" href="/ics/'+encodeURIComponent(e.file)+'" download>Accept .ics</a>'+del+'</div>';
     c.appendChild(div);});
@@ -711,12 +718,14 @@ async function exportAllICS(){
 }
 async function rejectItem(file,index,btn){btn.disabled=true;const r=await postJSON('/api/reject',{file,index});btn.textContent=r.ok?'rejected ✓':'err';}
 async function accept(file,index,btn){
-  const d=await (await postJSON('/api/accept',{file,index})).json(); // phase 1: evidence + nonce
+  const p1=await postJSON('/api/accept',{file,index}); // phase 1: evidence + nonce
+  if(!p1.ok){btn.textContent='refused';alert('Could not add that: '+(await p1.text().catch(()=>p1.status)));return;}
+  const d=await p1.json();
   if(!d.confirm_required){btn.textContent='error';return;}
   if(!confirm(d.summary+'\n'+(d.evidence||[]).join('\n')+'\n\n(approval '+d.nonce.slice(0,6)+') — Confirm?')) return;
   btn.disabled=true;btn.textContent='…';
   const r=await postJSON('/api/accept',{file,index,nonce:d.nonce,confirm:true}); // phase 2
-  if(r.ok){btn.textContent='added ✓';loadDeadlines();}else{btn.textContent='refused';btn.disabled=false;}
+  if(r.ok){btn.textContent='added ✓';loadDeadlines();}else{btn.textContent='refused';btn.disabled=false;alert('Could not add that: '+(await r.text().catch(()=>r.status)));}
 }
 // Edit-before-accept: a modal pre-filled from the extracted event; Save & add writes the
 // EDITED event through the same HITL-confirmed accept (the human touch on extraction).
@@ -764,16 +773,17 @@ function itemRow(i){
   // (Calendar tab). Here the vocabulary is task-shaped: done / dismiss / snooze,
   // keyed by the item's stable fingerprint so it survives a projection rebuild (C2).
   let btn='';
-  if(i.key){const k=esc(i.key),done=(i.kind==='heads_up')?'✓ Got it':'✓ Done';
-    btn='<button class="ghost" title="handled" onclick="setItemStatus(\''+k+'\',\'done\')">'+done+'</button>'+
-    ' <button class="ghost" title="not for me" onclick="setItemStatus(\''+k+'\',\'dismissed\')">Dismiss</button>'+
-    ' <button class="ghost" title="remind me later" onclick="snoozeItem(\''+k+'\')">Snooze</button>';}
+  if(i.key){const k=jsarg(i.key),done=(i.kind==='heads_up')?'✓ Got it':'✓ Done';
+    btn='<button class="ghost" title="handled" onclick="setItemStatus('+k+',\'done\')">'+done+'</button>'+
+    ' <button class="ghost" title="not for me" onclick="setItemStatus('+k+',\'dismissed\')">Dismiss</button>'+
+    ' <button class="ghost" title="remind me later" onclick="snoozeItem('+k+')">Snooze</button>';}
   const badge=i.status&&i.status!=='active'?' <span class="kind warn">'+esc(i.status)+(i.snooze_until?' → '+esc(i.snooze_until):'')+'</span>':'';
   div.innerHTML='<div><span class="kind">'+esc(i.kind||'item')+'</span>'+badge+' <b>'+esc(i.title)+'</b>'+descLine(i)+'<br><span class="mut">'+esc((i.due||i.start)?when(i):'no date')+'</span></div><div>'+btn+'</div>';
   return div;
 }
 async function setItemStatus(key,status,snooze){
-  await postJSON('/api/items/status',{key:key,status:status,snooze_until:snooze||''});
+  const r=await postJSON('/api/items/status',{key:key,status:status,snooze_until:snooze||''});
+  if(!r.ok)alert('Could not save that: '+(await r.text().catch(()=>r.status)));
   loadTasks();
 }
 function snoozeItem(key){
@@ -794,7 +804,7 @@ async function loadTasks(){
     div.innerHTML='<div style="width:100%"><b>'+esc(i.title)+'</b><br><span class="mut">'+esc(i.url||'')+'</span>'+
       '<br><span class="warn" style="font-size:12px">fetched in the sandbox, only if the host is allow-listed</span>'+
       '<div class="actionOut mut" style="margin-top:6px"></div></div>'+
-      '<div><button class="ghost" onclick="doAction(\''+esc(i.file)+'\','+i.index+',this)">Check &amp; fetch</button></div>';
+      '<div><button class="ghost" onclick="doAction('+jsarg(i.file)+','+i.index+',this)">Check &amp; fetch</button></div>';
     ac.appendChild(div);});
   loadSummaries(items);
 }
@@ -833,19 +843,19 @@ async function loadReview(){
     const why=(i.warnings&&i.warnings.join(', '))||('confidence '+Math.round((i.confidence||0)*100)+'%');
     const lbl=(i.title||'').slice(0,60);
     let act='';
-    if(i.file&&i.index>=0){act='<button class="ghost" onclick="accept(\''+esc(i.file)+'\','+i.index+',this)">Add this</button> '+
-      '<button class="ghost" onclick="openEditModal(\''+esc(i.file)+'\','+i.index+')">Edit &amp; add</button> '+
-      '<button class="ghost" onclick="rejectItem(\''+esc(i.file)+'\','+i.index+',this)">Not real</button> ';}
+    if(i.file&&i.index>=0){act='<button class="ghost" onclick="accept('+jsarg(i.file)+','+i.index+',this)">Add this</button> '+
+      '<button class="ghost" onclick="openEditModal('+jsarg(i.file)+','+i.index+')">Edit &amp; add</button> '+
+      '<button class="ghost" onclick="rejectItem('+jsarg(i.file)+','+i.index+',this)">Not real</button> ';}
     act+=feedbackBtns('review',lbl);
     div.innerHTML='<div><b>'+esc(i.title)+'</b>'+descLine(i)+'<br><span class="warn" style="font-size:13px">'+esc(why)+'</span></div><div>'+act+'</div>';
     c.appendChild(div);});
 }
 function feedbackBtns(source,label){
-  const s=esc(source),l=esc(label);
+  const s=jsarg(source),l=jsarg(label);
   return '<span class="fb">'+
-    '<button class="ghost" title="good" onclick="sendFeedback(\''+s+'\',\''+l+'\',\'up\',this)">👍</button>'+
-    '<button class="ghost" title="meh" onclick="sendFeedback(\''+s+'\',\''+l+'\',\'neutral\',this)">😐</button>'+
-    '<button class="ghost" title="bad" onclick="sendFeedback(\''+s+'\',\''+l+'\',\'down\',this)">👎</button></span>';
+    '<button class="ghost" title="good" onclick="sendFeedback('+s+','+l+',\'up\',this)">👍</button>'+
+    '<button class="ghost" title="meh" onclick="sendFeedback('+s+','+l+',\'neutral\',this)">😐</button>'+
+    '<button class="ghost" title="bad" onclick="sendFeedback('+s+','+l+',\'down\',this)">👎</button></span>';
 }
 async function sendFeedback(source,label,rating,btn){
   const r=await (await postJSON('/api/feedback',{source,label,rating})).json();
@@ -880,7 +890,7 @@ async function loadCommands(){
       ?('<span class="pill fail">block</span>'+(x.reason?' <span class="mut">'+esc(x.reason)+'</span>':''))
       :('<span class="pill pass">allow</span>'+(x.outcome?' → <span class="mut">'+esc(x.outcome)+'</span>':''));
     const t=esc((x.ts||'').slice(11,19));
-    const tr=x.trace?'<span class="trace" title="replay this trace" onclick="replay(\''+esc(x.trace)+'\')">trace '+esc(x.trace.slice(0,8))+'</span>':'';
+    const tr=x.trace?'<span class="trace" title="replay this trace" onclick="replay('+jsarg(x.trace)+')">trace '+esc(x.trace.slice(0,8))+'</span>':'';
     return '<div class="ev"><div style="width:100%">'+icon+' <span class="kind">'+esc(x.kind)+'</span> <code>'+esc(x.command||'—')+'</code>'+
       '<br><span class="mut">'+dec+' · '+tr+' · '+t+'</span></div></div>';
   }).join('');
@@ -908,7 +918,7 @@ function dayCell(y,m,d,other){
   let inner='<div class="daynum">'+d+'</div>';
   items.slice(0,3).forEach(i=>inner+='<span class="it k-'+(i.kind||'event')+'">'+esc(i.title)+'</span>');
   if(items.length>3)inner+='<span class="mut" style="font-size:11px">+'+(items.length-3)+' more</span>';
-  return '<div class="day'+(other?' other':'')+(ds===todayStr()?' today':'')+'" onclick="showDay(\''+ds+'\')">'+inner+'</div>';
+  return '<div class="day'+(other?' other':'')+(ds===todayStr()?' today':'')+'" onclick="showDay('+jsarg(ds)+')">'+inner+'</div>';
 }
 function renderMonth(){
   const y=curMonth.getFullYear(),m=curMonth.getMonth();
@@ -942,7 +952,7 @@ async function loadMiniCal(){
 function miniCell(y,m,d,other){
   const ds=dateStr(y,m,d);const n=(monthItems[ds]||[]).length;
   const dot=n?'<span class="mdot">'+(n>1?n:'●')+'</span>':'';
-  return '<div class="mday'+(other?' other':'')+(ds===todayStr()?' today':'')+(n?' has':'')+'" onclick="jumpDay(\''+ds+'\')">'+d+dot+'</div>';
+  return '<div class="mday'+(other?' other':'')+(ds===todayStr()?' today':'')+(n?' has':'')+'" onclick="jumpDay('+jsarg(ds)+')">'+d+dot+'</div>';
 }
 function renderMiniCal(){
   const c=$('#miniCal');if(!c)return;
