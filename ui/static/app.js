@@ -777,7 +777,7 @@ function itemRow(i){
   let btn='';
   if(i.key){const k=jsarg(i.key),done=(i.kind==='heads_up')?'✓ Got it':'✓ Done';
     btn='<button class="ghost" title="handled" onclick="setItemStatus('+k+',\'done\')">'+done+'</button>'+
-    ' <button class="ghost" title="not for me" onclick="setItemStatus('+k+',\'dismissed\')">Dismiss</button>'+
+    ' <button class="ghost" title="remove it from your list (you can restore it under Show removed)" onclick="setItemStatus('+k+',\'dismissed\')">Remove</button>'+
     ' <button class="ghost" title="remind me later" onclick="snoozeItem('+k+')">Snooze</button>';}
   const badge=i.status&&i.status!=='active'?' <span class="kind warn">'+esc(i.status)+(i.snooze_until?' → '+esc(i.snooze_until):'')+'</span>':'';
   div.innerHTML='<div><span class="kind">'+esc(i.kind||'item')+'</span>'+badge+' <b>'+esc(i.title)+'</b>'+descLine(i)+'<br><span class="mut">'+esc((i.due||i.start)?when(i):'no date')+'</span></div><div>'+btn+'</div>';
@@ -794,7 +794,24 @@ function snoozeItem(key){
   const until=prompt('Snooze until (YYYY-MM-DD):',def);
   if(until)setItemStatus(key,'snoozed',until);
 }
+// Removed and done rows are only hidden (every row is a projection of an email's
+// summary), so they can be shown and restored. Restore clears the status overlay.
+let __showRemoved=false;
+async function toggleRemoved(){__showRemoved=!__showRemoved;loadTasks();}
+async function restoreItem(key){const r=await postJSON('/api/items/status',{key:key,status:'active'});if(!r.ok)alert('Could not restore that: '+(await r.text().catch(()=>r.status)));loadTasks();}
+async function loadRemoved(){
+  const host=$('#removedList');if(!host)return;
+  if(!__showRemoved){host.innerHTML='';$('#removedToggle').textContent='Show removed';return;}
+  $('#removedToggle').textContent='Hide removed';
+  const d=await getJSON('/api/items?all=1');const xs=(d.items||[]).filter(i=>i.status==='done'||i.status==='dismissed'||i.status==='snoozed');
+  if(!xs.length){host.innerHTML='<p class="mut">nothing removed, done or snoozed</p>';return;}
+  host.innerHTML='';xs.forEach(i=>{const div=document.createElement('div');div.className='ev';
+    div.innerHTML='<div><span class="kind">'+esc(i.kind||'item')+'</span> <span class="kind warn">'+esc(i.status)+(i.snooze_until?' → '+esc(i.snooze_until):'')+'</span> <b>'+esc(i.title)+'</b><br><span class="mut">'+esc((i.due||i.start)?when(i):'no date')+'</span></div>'+
+      '<div><button class="ghost" title="put it back on the list" onclick="restoreItem('+jsarg(i.key)+')">Restore</button></div>';
+    host.appendChild(div);});
+}
 async function loadTasks(){
+  loadRemoved();
   const d=await getJSON('/api/items');const items=d.items||[];
   const fill=(id,kind)=>{const c=$('#'+id);c.innerHTML='';const xs=items.filter(i=>(i.kind||'event')===kind);
     if(!xs.length){c.innerHTML='<p class="mut">none</p>';return;}xs.forEach(i=>c.appendChild(itemRow(i)));};
@@ -855,7 +872,7 @@ async function loadReview(){
     const tick=(i.file&&i.index>=0)?'<input type="checkbox" class="rvSel" data-file="'+esc(i.file)+'" data-index="'+i.index+'" onclick="reviewCount()" style="margin-right:8px"> ':'';
     if(i.file&&i.index>=0){act='<button class="ghost" onclick="accept('+jsarg(i.file)+','+i.index+',this)">Add this</button> '+
       '<button class="ghost" onclick="openEditModal('+jsarg(i.file)+','+i.index+')">Edit &amp; add</button> '+
-      '<button class="ghost" onclick="rejectItem('+jsarg(i.file)+','+i.index+',this)">Not real</button> ';}
+      '<button class="ghost" title="wrong extraction: remove it and record that it was wrong" onclick="rejectItem('+jsarg(i.file)+','+i.index+',this)">Not real</button> ';}
     act+=feedbackBtns('review',lbl);
     div.innerHTML='<div>'+tick+'<b>'+esc(i.title)+'</b>'+descLine(i)+'<br><span class="warn" style="font-size:13px">'+esc(why)+'</span></div><div>'+act+'</div>';
     c.appendChild(div);});
