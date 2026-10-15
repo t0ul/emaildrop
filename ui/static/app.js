@@ -716,7 +716,7 @@ async function exportAllICS(){
   await postJSON('/api/calendar/reset-exported',{});
   downloadNewICS();
 }
-async function rejectItem(file,index,btn){btn.disabled=true;const r=await postJSON('/api/reject',{file,index});btn.textContent=r.ok?'rejected ✓':'err';}
+async function rejectItem(file,index,btn){btn.disabled=true;const r=await postJSON('/api/reject',{file,index});if(r.ok){btn.textContent='rejected ✓';loadReview();}else{btn.textContent='err';btn.disabled=false;alert('Could not reject that: '+(await r.text().catch(()=>r.status)));}}
 async function accept(file,index,btn){
   const p1=await postJSON('/api/accept',{file,index}); // phase 1: evidence + nonce
   if(!p1.ok){btn.textContent='refused';alert('Could not add that: '+(await p1.text().catch(()=>p1.status)));return;}
@@ -725,7 +725,7 @@ async function accept(file,index,btn){
   if(!confirm(d.summary+'\n'+(d.evidence||[]).join('\n')+'\n\n(approval '+d.nonce.slice(0,6)+') — Confirm?')) return;
   btn.disabled=true;btn.textContent='…';
   const r=await postJSON('/api/accept',{file,index,nonce:d.nonce,confirm:true}); // phase 2
-  if(r.ok){btn.textContent='added ✓';loadDeadlines();}else{btn.textContent='refused';btn.disabled=false;alert('Could not add that: '+(await r.text().catch(()=>r.status)));}
+  if(r.ok){btn.textContent='added ✓';loadDeadlines();loadEvents();loadReview();}else{btn.textContent='refused';btn.disabled=false;alert('Could not add that: '+(await r.text().catch(()=>r.status)));}
 }
 // Edit-before-accept: a modal pre-filled from the extracted event; Save & add writes the
 // EDITED event through the same HITL-confirmed accept (the human touch on extraction).
@@ -757,11 +757,13 @@ function openEditModal(file,index){
     if(date&&time&&!allday)start=date+'T'+time+':00';
     const edit={title:$('#ed_title').value.trim(),start:start,location:$('#ed_loc').value.trim(),all_day:allday};
     $('#ed_msg').textContent='confirming…';
-    const d=await (await postJSON('/api/accept',{file,index,edit})).json(); // phase 1 (evidence reflects edits)
+    const p1=await postJSON('/api/accept',{file,index,edit}); // phase 1 (evidence reflects edits)
+    if(!p1.ok){$('#ed_msg').textContent='refused: '+(await p1.text().catch(()=>p1.status));return;}
+    const d=await p1.json();
     if(!d.confirm_required){$('#ed_msg').textContent='error';return;}
     if(!confirm(d.summary+'\n'+(d.evidence||[]).join('\n')+'\n\n(approval '+d.nonce.slice(0,6)+') — Confirm?')){$('#ed_msg').textContent='';return;}
     const r=await postJSON('/api/accept',{file,index,edit,nonce:d.nonce,confirm:true}); // phase 2
-    if(r.ok){close();loadTasks();loadDeadlines&&loadDeadlines();}else{$('#ed_msg').textContent='refused';}
+    if(r.ok){close();loadTasks();loadReview();loadEvents();loadDeadlines&&loadDeadlines();}else{$('#ed_msg').textContent='refused: '+(await r.text().catch(()=>r.status));}
   };
 }
 const __ITEMS__={}; // file|index -> item, for the edit modal
@@ -838,17 +840,62 @@ async function loadReview(){
   const card=$('#reviewCard');const xs=d.items||[];
   if(card)card.classList.toggle('hide',!xs.length); // the "Needs your OK" card shows only when there's something to confirm
   if(!xs.length)return;
+  // Batch controls: tick rows, then add or reject them together. Adding still goes
+  // through the per-item HITL gate; the evidence for every ticked row is shown in ONE
+  // confirm, then each approval is confirmed with its own single-use nonce.
+  const bar=document.createElement('div');bar.className='ev';bar.id='reviewBatch';
+  bar.innerHTML='<div><label class="mut"><input type="checkbox" id="rvAll" onclick="reviewSelectAll(this.checked)"> select all</label> <span id="rvCount" class="mut"></span></div>'+
+    '<div><button class="go" onclick="acceptSelected(this)">Add selected</button> <button class="ghost" onclick="rejectSelected(this)">Not real (selected)</button></div>';
+  c.appendChild(bar);
   xs.forEach(i=>{if(i.file&&i.index>=0)__ITEMS__[i.file+'|'+i.index]=i;
     const div=document.createElement('div');div.className='ev';
     const why=(i.warnings&&i.warnings.join(', '))||('confidence '+Math.round((i.confidence||0)*100)+'%');
     const lbl=(i.title||'').slice(0,60);
     let act='';
+    const tick=(i.file&&i.index>=0)?'<input type="checkbox" class="rvSel" data-file="'+esc(i.file)+'" data-index="'+i.index+'" onclick="reviewCount()" style="margin-right:8px"> ':'';
     if(i.file&&i.index>=0){act='<button class="ghost" onclick="accept('+jsarg(i.file)+','+i.index+',this)">Add this</button> '+
       '<button class="ghost" onclick="openEditModal('+jsarg(i.file)+','+i.index+')">Edit &amp; add</button> '+
       '<button class="ghost" onclick="rejectItem('+jsarg(i.file)+','+i.index+',this)">Not real</button> ';}
     act+=feedbackBtns('review',lbl);
-    div.innerHTML='<div><b>'+esc(i.title)+'</b>'+descLine(i)+'<br><span class="warn" style="font-size:13px">'+esc(why)+'</span></div><div>'+act+'</div>';
+    div.innerHTML='<div>'+tick+'<b>'+esc(i.title)+'</b>'+descLine(i)+'<br><span class="warn" style="font-size:13px">'+esc(why)+'</span></div><div>'+act+'</div>';
     c.appendChild(div);});
+  reviewCount();
+}
+function reviewSelected(){return [...document.querySelectorAll('.rvSel:checked')].map(x=>({file:x.dataset.file,index:parseInt(x.dataset.index,10)}));}
+function reviewSelectAll(on){document.querySelectorAll('.rvSel').forEach(x=>x.checked=on);reviewCount();}
+function reviewCount(){const n=reviewSelected().length,el=$('#rvCount');if(el)el.textContent=n?n+' selected':'';}
+// Add every ticked row: phase 1 for each (evidence + nonce), one confirm listing all of
+// it, then phase 2 for each. A row that fails is reported and left in the queue.
+async function acceptSelected(btn){
+  const sel=reviewSelected();if(!sel.length){alert('Tick the rows to add first.');return;}
+  btn.disabled=true;btn.textContent='…';
+  const pending=[],failed=[];
+  for(const it of sel){
+    const r=await postJSON('/api/accept',{file:it.file,index:it.index});
+    if(!r.ok){failed.push((__ITEMS__[it.file+'|'+it.index]||{}).title+': '+(await r.text().catch(()=>r.status)));continue;}
+    const d=await r.json();if(!d.confirm_required){failed.push((__ITEMS__[it.file+'|'+it.index]||{}).title+': no approval challenge');continue;}
+    pending.push({it,d});
+  }
+  if(pending.length){
+    const lines=pending.map(p=>'• '+p.d.summary+' ('+(p.d.evidence||[]).join('; ')+')');
+    const shown=lines.slice(0,12).join('\n')+(lines.length>12?'\n… and '+(lines.length-12)+' more':'');
+    if(!confirm('Add '+pending.length+' item(s) to your calendar?\n\n'+shown+'\n\nConfirm all?')){btn.disabled=false;btn.textContent='Add selected';return;}
+    for(const p of pending){
+      const r=await postJSON('/api/accept',{file:p.it.file,index:p.it.index,nonce:p.d.nonce,confirm:true});
+      if(!r.ok)failed.push((__ITEMS__[p.it.file+'|'+p.it.index]||{}).title+': '+(await r.text().catch(()=>r.status)));
+    }
+  }
+  if(failed.length)alert('Not added:\n'+failed.join('\n'));
+  loadReview();loadEvents();loadDeadlines();
+}
+async function rejectSelected(btn){
+  const sel=reviewSelected();if(!sel.length){alert('Tick the rows first.');return;}
+  if(!confirm('Mark '+sel.length+' item(s) as not real? They leave this list.'))return;
+  btn.disabled=true;
+  const failed=[];
+  for(const it of sel){const r=await postJSON('/api/reject',{file:it.file,index:it.index});if(!r.ok)failed.push((__ITEMS__[it.file+'|'+it.index]||{}).title);}
+  if(failed.length)alert('Could not reject:\n'+failed.join('\n'));
+  loadReview();
 }
 function feedbackBtns(source,label){
   const s=jsarg(source),l=jsarg(label);
